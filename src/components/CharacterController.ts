@@ -97,8 +97,6 @@ class CharacterController {
     }
 
     public start(): void {
-        this.isActive = true;
-
         // Keyboard input
         this.scene.actionManager = new ActionManager(this.scene);
 
@@ -159,15 +157,17 @@ class CharacterController {
         });
 
         this.scene.onBeforeRenderObservable.add(() => {
+            if (!this.isActive) return;
             this.updateCharacter();
             this.updateCamera();
         });
+
+        this.isActive = true;
     }
 
     public stop(): void {
-        this.scene.actionManager.dispose();
-        this.scene.onBeforeRenderObservable.clear();
         this.isActive = false;
+        this.scene.actionManager.dispose();
     }
 
     private updateCamera(): void {

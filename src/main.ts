@@ -25,6 +25,8 @@ class App {
     private joystick: Joystick;
     // private appState: 0 | 1 | 2 = 1;
 
+    private isThirdperson: boolean = false;
+
     private ground: BABYLON.Mesh;
 
     constructor() {
@@ -50,19 +52,18 @@ class App {
         // wait until scene has physics then create scene
         this.initScene().then(async () => {
             this.createAtom();
-            this.initFirstPersonController();
+            // this.initFirstPersonController();
 
-            // if (this.character) {
-            //     this.initThirdPersonController();
-            //     await this.character.init();
-            //     this.characterController = new CharacterController(
-            //         this.character!.root as BABYLON.Mesh,
-            //         this.character!.physicsBody as BABYLON.PhysicsBody,
-            //         this.camera as BABYLON.ArcRotateCamera,
-            //         this.scene,
-            //         this.joystick,
-            //     );
-            // }
+            // thirperson controller mode as default mode
+            this.initThirdPersonController();
+            await this.initCharacterAsync();
+            this.characterController = new CharacterController(
+                this.character!.root as BABYLON.Mesh,
+                this.character!.physicsBody as BABYLON.PhysicsBody,
+                this.camera as BABYLON.ArcRotateCamera,
+                this.scene,
+                this.joystick,
+            );
 
             this.createLight();
 
@@ -110,7 +111,6 @@ class App {
 
     initFirstPersonController(pointerLock: boolean = false): void {
         this.resetCamera();
-        this.disposeCharacter();
 
         this.camera = new BABYLON.UniversalCamera(
             "camera",
@@ -143,23 +143,11 @@ class App {
         this.camera.keysDown.push(83); // S
         this.camera.keysRight.push(68); // D
 
-        // Create invisible floor as ground to walk on with physics
-        // this.ground = BABYLON.MeshBuilder.CreateGround(
-        //     "ground",
-        //     { width: 140, height: 66 },
-        //     this.scene,
-        // );
-        // this.ground.position.z = 2.5;
-        // this.ground.position.y = -0.1;
-        // this.ground.checkCollisions = true;
-        // this.ground.material = new BABYLON.StandardMaterial(
-        //     "groundMat",
-        //     this.scene,
-        // );
-        // this.ground.material.alpha = 0;
+        this.isThirdperson = false;
     }
 
     initThirdPersonController(): void {
+        if (this.isThirdperson) return;
         this.resetCamera();
 
         this.camera = new BABYLON.ArcRotateCamera(
@@ -194,6 +182,8 @@ class App {
         this.camera.keysDown = [];
         this.camera.keysLeft = [];
         this.camera.keysRight = [];
+
+        this.isThirdperson = true;
     }
 
     initControls(): void {
@@ -210,29 +200,38 @@ class App {
                         break;
                     case "1":
                         // switch to first person controller (with pointer lock) by pressing 1
-                        this.disposeCharacterController();
+                        this.stopCharacterController();
+                        this.character?.hide();
                         this.initFirstPersonController(true);
                         break;
                     case "2":
                         // switch to first person controller (without pointer lock) by pressing 2
-                        this.disposeCharacterController();
+                        this.stopCharacterController();
+                        this.character?.hide();
                         this.initFirstPersonController(false);
                         break;
                     case "3":
+                        if (this.isThirdperson) return;
                         // switch to third person controller by pressing 3
                         this.initThirdPersonController();
 
                         if (!this.character) {
-                            this.character = new Character(this.scene);
-                            await this.character.init();
+                            await this.initCharacterAsync();
+                        } else {
+                            this.character.show();
                         }
-                        this.characterController = new CharacterController(
-                            this.character!.root as BABYLON.Mesh,
-                            this.character!.physicsBody as BABYLON.PhysicsBody,
-                            this.camera as BABYLON.ArcRotateCamera,
-                            this.scene,
-                            this.joystick,
-                        );
+
+                        if (!this.characterController) {
+                            this.characterController = new CharacterController(
+                                this.character!.root as BABYLON.Mesh,
+                                this.character!.physicsBody as BABYLON.PhysicsBody,
+                                this.camera as BABYLON.ArcRotateCamera,
+                                this.scene,
+                                this.joystick,
+                            );
+                        } else {
+                            this.characterController.start();
+                        }
                         break;
                 }
             }
@@ -369,24 +368,26 @@ class App {
         this.character = null!;
     }
 
-    disposeCharacterController(): void {
+    stopCharacterController(): void {
         this.characterController?.dispose();
         this.characterController = null!;
     }
 
     dispose(): void {
-        this.engine.stopRenderLoop();
-        this.scene.dispose();
-        this.engine.dispose();
-
         // dispose cameras
         this.scene.cameras.forEach(camera => {
             camera.dispose();
         });
 
+        // dispose character and character controller
         this.disposeCharacter();
-        this.disposeCharacterController();
+        this.stopCharacterController();
         this.joystick.dispose();
+
+        this.engine.stopRenderLoop();
+        this.scene.dispose();
+        this.engine.dispose();
+
     }
 }
 
