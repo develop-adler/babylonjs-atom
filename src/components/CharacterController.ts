@@ -230,12 +230,25 @@ class CharacterController {
                 0.2,
             );
 
-            // move mesh
+            // ========================================================
+            // move physics body
+
+            // get joystick x and y vectors
             const joystickVector = this.joystick.getData().vector;
             this.moveDirection.set(joystickVector.x, 0, joystickVector.y);
             this.moveDirection.scaleInPlace(this.moveSpeed * 100);
 
-            // move the mesh by moving the physics body
+            // move according to camera's rotation
+            this.moveDirection.rotateByQuaternionToRef(
+                this.camera.absoluteRotation,
+                this.moveDirection,
+            );
+
+            // get y velocity to make it behave properly
+            const vel = this.meshBody.getLinearVelocity();
+            this.moveDirection.y = vel.y;
+
+            // move
             this.meshBody.setLinearVelocity(this.moveDirection);
         } else if (forward || backward || left || right) {
             this.isMoving = true;
@@ -282,8 +295,6 @@ class CharacterController {
 
             // move the mesh by moving the physics body
             const vel = this.meshBody.getLinearVelocity();
-            console.log(vel);
-
             this.moveDirection.y = vel.y;
             this.meshBody.setLinearVelocity(this.moveDirection);
         } else {
