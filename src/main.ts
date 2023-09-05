@@ -20,7 +20,7 @@ class App {
     private scene: BABYLON.Scene;
     private havok!: HavokPhysicsWithBindings;
     private camera!: BABYLON.ArcRotateCamera | BABYLON.UniversalCamera;
-    private character?: Character;
+    private character!: Character;
     private characterController?: CharacterController;
     private joystick: Joystick;
     // private appState: 0 | 1 | 2 = 1;
@@ -45,13 +45,14 @@ class App {
         this.engine.displayLoadingUI();
 
         this.scene = new BABYLON.Scene(this.engine);
-        this.character = new Character(this.scene);
         this.ground = new BABYLON.Mesh("ground", this.scene);
 
         // wait until scene has physics then create scene
         this.initScene().then(async () => {
             this.createAtom();
             this.initFirstPersonController();
+
+            // this.character = new Character(this.scene);
 
             // if (this.character) {
             //     this.initThirdPersonController();

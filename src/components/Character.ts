@@ -1,6 +1,6 @@
 import {
     AbstractMesh,
-    AnimationRange,
+    AnimationGroup,
     Mesh,
     MeshBuilder,
     PhysicsAggregate,
@@ -16,14 +16,46 @@ class Character {
     public scene: Scene;
     public root!: AbstractMesh;
     public meshes!: AbstractMesh[];
-    private animations: {
-        [key: string]: AnimationRange;
+    private _animations: {
+        [key: string]: AnimationGroup;
     } = {};
-    public sphereMesh!: Mesh;
-    public physicsBody!: PhysicsBody;
+    private _capsuleMesh: Mesh;
+    private _physicsBody: PhysicsBody;
 
     constructor(scene: Scene) {
         this.scene = scene;
+
+        // create capsule physics body for character
+        const capsuleHeight = 2.5;
+        this._capsuleMesh = MeshBuilder.CreateCapsule(
+            "sphereMesh",
+            {
+                radius: 0.55,
+                height: capsuleHeight,
+                tessellation: 2,
+                subdivisions: 1,
+            },
+            this.scene,
+        );
+        this._capsuleMesh.isVisible = false;
+        this._capsuleMesh.position = new Vector3(0, capsuleHeight * 0.5, 0);
+
+        const physicsAggregate = new PhysicsAggregate(
+            this._capsuleMesh,
+            PhysicsShapeType.CAPSULE,
+            { mass: 20, restitution: 0.01 },
+            this.scene,
+        );
+
+        this._physicsBody = physicsAggregate.body;
+        this._physicsBody.setMotionType(PhysicsMotionType.DYNAMIC);
+
+        // lock rotation by disabling intertia
+        this._physicsBody.setMassProperties({
+            inertia: new Vector3(0, 0, 0),
+        });
+        // prevent sliding around
+        this._physicsBody.setLinearDamping(50);
     }
 
     public async init(): Promise<void> {
@@ -53,52 +85,46 @@ class Character {
 
         this.root.scaling.scaleInPlace(1.5);
 
-        const sphereSize = 1.5;
-        this.sphereMesh = MeshBuilder.CreateSphere(
-            "sphereMesh",
-            { diameter: sphereSize },
-            this.scene,
-        );
-        // this.sphereMesh.isVisible = false;
-        this.sphereMesh.visibility = 0.6;
-        this.sphereMesh.position = new Vector3(0, sphereSize * 0.5, -2);
-        this.root.position = this.sphereMesh.position;
-        this.sphereMesh.position.y = sphereSize * 0.5;
-
-        const sphereAggregate = new PhysicsAggregate(
-            this.sphereMesh,
-            PhysicsShapeType.SPHERE,
-            { mass: 20, restitution: 0.01 },
-            this.scene,
-        );
-
-        this.physicsBody = sphereAggregate.body;
-        this.physicsBody.setMotionType(PhysicsMotionType.DYNAMIC);
-
-        // lock rotation by disabling intertia
-        this.physicsBody.setMassProperties({
-            inertia: new Vector3(0, 0, 0),
+        // re-center character's pivot point for physics body
+        let characterHeight = 0;
+        this.root.getChildMeshes().forEach(mesh => {
+            if (mesh.name === "Beta_Joints.001") {
+                characterHeight = mesh.getBoundingInfo().boundingBox.maximumWorld.y;
+                return;
+            }
         });
-        // prevent sliding around
-        this.physicsBody.setLinearDamping(50);
+        this.root.setPivotPoint(new Vector3(0, characterHeight * 1.6, 0));
+
+        this.scene.registerBeforeRender(() => {
+            this.root.position.copyFrom(this._capsuleMesh.position);
+        });
     }
 
-    public getAnimations(): { [key: string]: AnimationRange } {
-        return this.animations;
+    public get animations(): { [key: string]: AnimationGroup } {
+        return this._animations;
+    }
+    public get sphereMesh(): Mesh {
+        return this._capsuleMesh;
+    }
+    public get physicsBody(): PhysicsBody {
+        return this._physicsBody;
     }
 
     public dispose(): void {
         // remove all meshes' animations
-        Object.entries(this.animations).forEach(([_, animation]) => {
-            this.scene.stopAnimation(animation);
+        Object.entries(this._animations).forEach(([_, animation]) => {
+            animation.dispose();
         });
 
         if (!this.meshes) return;
 
         this.meshes.forEach(mesh => {
             this.scene.removeMesh(mesh);
-            mesh.dispose();
+            mesh.dispose(false, true);
         });
+
+        this.scene.removeMesh(this._capsuleMesh);
+        this._capsuleMesh.dispose();
     }
 }
 
