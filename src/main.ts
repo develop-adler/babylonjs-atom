@@ -22,9 +22,9 @@ class App {
     private camera!: BABYLON.ArcRotateCamera | BABYLON.UniversalCamera;
     private character?: Character;
     private characterController?: CharacterController;
-    private isThirdperson: boolean = false;
+    // private isThirdperson: boolean = false;
     private joystick: Joystick;
-    private appState: 0 | 1 | 2 = 1;
+    // private appState: 0 | 1 | 2 = 1;
 
     private ground: BABYLON.Mesh;
 

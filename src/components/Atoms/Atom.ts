@@ -169,25 +169,25 @@ abstract class Atom {
         wallRMesh.checkCollisions = true;
         wallRMesh.isVisible = false;
 
-        const groundAggregate = new PhysicsAggregate(
+        new PhysicsAggregate(
             ground,
             PhysicsShapeType.BOX,
             { mass: 0, restitution: 0.01 },
             scene,
         );
-        const frontWallAggregate = new PhysicsAggregate(
+        new PhysicsAggregate(
             frontWallMesh,
             PhysicsShapeType.BOX,
             { mass: 0, restitution: 0.01 },
             scene,
         );
-        const wallLAggregate = new PhysicsAggregate(
+        new PhysicsAggregate(
             wallLMesh,
             PhysicsShapeType.BOX,
             { mass: 0, restitution: 0.01 },
             scene,
         );
-        const wallRAggregate = new PhysicsAggregate(
+        new PhysicsAggregate(
             wallRMesh,
             PhysicsShapeType.BOX,
             { mass: 0, restitution: 0.01 },
