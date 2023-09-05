@@ -22,7 +22,6 @@ class App {
     private camera!: BABYLON.ArcRotateCamera | BABYLON.UniversalCamera;
     private character?: Character;
     private characterController?: CharacterController;
-    // private isThirdperson: boolean = false;
     private joystick: Joystick;
     // private appState: 0 | 1 | 2 = 1;
 
@@ -335,8 +334,6 @@ class App {
 
         this.engine.exitPointerlock();
         this.scene.onPointerDown = undefined;
-
-        this.isThirdperson = false;
 
         if (this.ground) {
             this.scene.removeMesh(this.ground);
