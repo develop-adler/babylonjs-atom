@@ -52,8 +52,6 @@ class App {
             this.createAtom();
             this.initFirstPersonController();
 
-            // this.character = new Character(this.scene);
-
             // if (this.character) {
             //     this.initThirdPersonController();
             //     await this.character.init();
@@ -169,7 +167,7 @@ class App {
             -Math.PI * 0.5,
             Math.PI * 0.5,
             5,
-            new BABYLON.Vector3(0, 2.5, -2), // target
+            new BABYLON.Vector3(0, 1.15, -2), // target
             this.scene,
         );
 

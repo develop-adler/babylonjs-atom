@@ -189,7 +189,7 @@ class CharacterController {
         this.camera.position.z += deltaZ;
 
         this.camera.setTarget(
-            new Vector3(translation.x, translation.y + 2.5, translation.z),
+            new Vector3(translation.x, translation.y + 1.15, translation.z),
         );
     }
 
