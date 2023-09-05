@@ -61,7 +61,7 @@ class Character {
         );
         // this.sphereMesh.isVisible = false;
         this.sphereMesh.visibility = 0.6;
-        this.sphereMesh.position = new Vector3(0, 0, -2);
+        this.sphereMesh.position = new Vector3(0, sphereSize * 0.5, -2);
         this.root.position = this.sphereMesh.position;
         this.sphereMesh.position.y = sphereSize * 0.5;
 

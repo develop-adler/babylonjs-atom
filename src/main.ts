@@ -185,7 +185,7 @@ class App {
 
         // camera min distance and max distance
         this.camera.lowerRadiusLimit = 0.5;
-        this.camera.upperRadiusLimit = 5;
+        this.camera.upperRadiusLimit = 10;
 
         //  lower rotation sensitivity, higher value = less sensitive
         this.camera.angularSensibilityX = 2000;

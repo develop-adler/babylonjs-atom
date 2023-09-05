@@ -5,6 +5,8 @@ import {
     Mesh,
     MeshBuilder,
     MirrorTexture,
+    PhysicsAggregate,
+    PhysicsShapeType,
     Plane,
     ReflectionProbe,
     Scene,
@@ -25,7 +27,6 @@ abstract class Atom {
     constructor(scene: Scene, dimensions: AtomDimensions) {
         this._scene = scene;
         this._dimensions = dimensions;
-
 
         const generateSatelliteMaterial = (
             mesh: Mesh,
@@ -82,15 +83,16 @@ abstract class Atom {
         );
         greenBox.setPivotMatrix(Matrix.Translation(0, 1.5, 1), false);
 
-
         // Create, position, and rotate a flat mesh surface.
-        const ground = MeshBuilder.CreatePlane(
-            "mirrorMesh",
-            { width: this.dimensions.width * 4, height: this.dimensions.height * 4 },
+        const ground = MeshBuilder.CreateBox(
+            "groundMesh",
+            {
+                width: this.dimensions.width * 4,
+                depth: this.dimensions.height * 4,
+                height: 0.01,
+            },
             scene,
         );
-        ground.position = new Vector3(0, 0.1, 0);
-        ground.rotation = new Vector3(Math.PI * 0.5, 0, 0);
         ground.checkCollisions = true;
         ground.visibility = 0.3;
 
@@ -98,7 +100,7 @@ abstract class Atom {
         const groundMaterial = new StandardMaterial("mirrorMaterial", scene);
         groundMaterial.diffuseColor = Color3.Black();
         groundMaterial.reflectionTexture = new MirrorTexture(
-            "mirror",
+            "mirrorMaterial",
             1024,
             scene,
             true,
@@ -116,35 +118,81 @@ abstract class Atom {
         ];
         groundMaterial.reflectionTexture.level = 0.5;
 
-        const frontWallBound = MeshBuilder.CreatePlane(
-            "frontWallBound",
-            { width: this.dimensions.width * 4, height: this.dimensions.height * 4 },
+        const frontWallMesh = MeshBuilder.CreateBox(
+            "frontWallMesh",
+            {
+                width: this.dimensions.width * 4,
+                depth: 0.01,
+                height: this.dimensions.height * 4,
+            },
             scene,
         );
-        frontWallBound.position = new Vector3(0, this.dimensions.height * 0.5, -this.dimensions.depth * 2);
-        frontWallBound.rotation = new Vector3(0, Math.PI, 0);
-        frontWallBound.checkCollisions = true;
-        frontWallBound.isVisible = false;
+        frontWallMesh.position = new Vector3(
+            0,
+            this.dimensions.height * 2,
+            -this.dimensions.depth * 2,
+        );
+        frontWallMesh.checkCollisions = true;
+        frontWallMesh.isVisible = false;
 
-        const wallLBound = MeshBuilder.CreatePlane(
-            "wallLBound",
-            { width: this.dimensions.width * 4, height: this.dimensions.height * 4 },
+        const wallLMesh = MeshBuilder.CreateBox(
+            "wallLMesh",
+            {
+                width: 0.01,
+                depth: this.dimensions.depth * 4,
+                height: this.dimensions.height * 4,
+            },
             scene,
         );
-        wallLBound.position = new Vector3(this.dimensions.width * 2, this.dimensions.height * 0.5, 0);
-        wallLBound.rotation = new Vector3(0, Math.PI * 0.5, 0);
-        wallLBound.checkCollisions = true;
-        wallLBound.isVisible = false;
+        wallLMesh.position = new Vector3(
+            this.dimensions.width * 2,
+            this.dimensions.height * 2,
+            0,
+        );
+        wallLMesh.checkCollisions = true;
+        wallLMesh.isVisible = false;
 
-        const wallRBound = MeshBuilder.CreatePlane(
-            "wallRBound",
-            { width: this.dimensions.width * 4, height: this.dimensions.height * 4 },
+        const wallRMesh = MeshBuilder.CreateBox(
+            "wallRMesh",
+            {
+                width: 0.01,
+                depth: this.dimensions.depth * 4,
+                height: this.dimensions.height * 4,
+            },
             scene,
         );
-        wallRBound.position = new Vector3(-this.dimensions.width * 2, this.dimensions.height * 0.5, 0);
-        wallRBound.rotation = new Vector3(0, -Math.PI * 0.5, 0);
-        wallRBound.checkCollisions = true;
-        wallRBound.isVisible = false;
+        wallRMesh.position = new Vector3(
+            -this.dimensions.width * 2,
+            this.dimensions.height * 2,
+            0,
+        );
+        wallRMesh.checkCollisions = true;
+        wallRMesh.isVisible = false;
+
+        const groundAggregate = new PhysicsAggregate(
+            ground,
+            PhysicsShapeType.BOX,
+            { mass: 0, restitution: 0.01 },
+            scene,
+        );
+        const frontWallAggregate = new PhysicsAggregate(
+            frontWallMesh,
+            PhysicsShapeType.BOX,
+            { mass: 0, restitution: 0.01 },
+            scene,
+        );
+        const wallLAggregate = new PhysicsAggregate(
+            wallLMesh,
+            PhysicsShapeType.BOX,
+            { mass: 0, restitution: 0.01 },
+            scene,
+        );
+        const wallRAggregate = new PhysicsAggregate(
+            wallRMesh,
+            PhysicsShapeType.BOX,
+            { mass: 0, restitution: 0.01 },
+            scene,
+        );
 
         generateSatelliteMaterial(blueSphere, Color3.Blue(), [
             redSphere,
