@@ -14,11 +14,11 @@ import Joystick from "./Joystick";
 import { EventData, JoystickOutputData } from "nipplejs";
 
 class CharacterController {
-    public scene: Scene;
-    public camera: ArcRotateCamera;
-    public mesh: AbstractMesh;
-    public meshBody: PhysicsBody;
-    public joystick?: Joystick;
+    private _scene: Scene;
+    private _camera: ArcRotateCamera;
+    private _mesh: AbstractMesh;
+    private _meshBody: PhysicsBody;
+    private _joystick?: Joystick;
     private animations: {
         [key: string]: AnimationGroup;
     } = {};
@@ -63,33 +63,33 @@ class CharacterController {
         scene: Scene,
         joystick?: Joystick,
     ) {
-        this.mesh = mesh;
-        this.meshBody = meshBody;
-        this.camera = camera;
-        this.scene = scene;
-        this.joystick = joystick;
+        this._mesh = mesh;
+        this._meshBody = meshBody;
+        this._camera = camera;
+        this._scene = scene;
+        this._joystick = joystick;
 
-        if (this.joystick !== undefined) {
+        if (this._joystick !== undefined) {
             const handleJoystickMove = (
                 e: EventData,
                 data: JoystickOutputData,
             ): void => {
-                this.joystick!.setEvent(e);
-                this.joystick!.setData(data);
+                this._joystick!.setEvent(e);
+                this._joystick!.setData(data);
             };
 
-            this.joystick.getManager().on("start", handleJoystickMove);
-            this.joystick.getManager().on("move", handleJoystickMove);
-            this.joystick.getManager().on("end", handleJoystickMove);
+            this._joystick.getManager().on("start", handleJoystickMove);
+            this._joystick.getManager().on("move", handleJoystickMove);
+            this._joystick.getManager().on("end", handleJoystickMove);
         }
 
-        this.animations.idle = this.scene.getAnimationGroupByName("Idle")!;
-        this.animations.walk = this.scene.getAnimationGroupByName("Walk")!;
-        this.animations.crouch = this.scene.getAnimationGroupByName("Crouch")!;
-        this.animations.run = this.scene.getAnimationGroupByName("Run")!;
-        this.animations.rumba = this.scene.getAnimationGroupByName("RumbaDance")!;
+        this.animations.idle = this._scene.getAnimationGroupByName("Idle")!;
+        this.animations.walk = this._scene.getAnimationGroupByName("Walk")!;
+        this.animations.crouch = this._scene.getAnimationGroupByName("Crouch")!;
+        this.animations.run = this._scene.getAnimationGroupByName("Run")!;
+        this.animations.rumba = this._scene.getAnimationGroupByName("RumbaDance")!;
         this.animations.sneakwalk =
-            this.scene.getAnimationGroupByName("SneakWalk")!;
+            this._scene.getAnimationGroupByName("SneakWalk")!;
 
         this.oldMove = { x: 0, y: 0, z: 0 };
 
@@ -98,10 +98,10 @@ class CharacterController {
 
     public start(): void {
         // Keyboard input
-        this.scene.actionManager = new ActionManager(this.scene);
+        this._scene.actionManager = new ActionManager(this._scene);
 
         // on key down
-        this.scene.actionManager.registerAction(
+        this._scene.actionManager.registerAction(
             new ExecuteCodeAction(ActionManager.OnKeyDownTrigger, e => {
                 let key = e.sourceEvent.key.toLowerCase();
 
@@ -127,7 +127,7 @@ class CharacterController {
         );
 
         // on key up
-        this.scene.actionManager.registerAction(
+        this._scene.actionManager.registerAction(
             new ExecuteCodeAction(ActionManager.OnKeyUpTrigger, e => {
                 let key = e.sourceEvent.key.toLowerCase();
 
@@ -146,7 +146,7 @@ class CharacterController {
             }),
         );
 
-        this.scene.onKeyboardObservable.add(kbInfo => {
+        this._scene.onKeyboardObservable.add(kbInfo => {
             if (kbInfo.type === KeyboardEventTypes.KEYDOWN) {
                 switch (kbInfo.event.key.toLowerCase().trim()) {
                     case "":
@@ -156,7 +156,7 @@ class CharacterController {
             }
         });
 
-        this.scene.onBeforeRenderObservable.add(() => {
+        this._scene.onBeforeRenderObservable.add(() => {
             if (!this.isActive) return;
             this.updateCharacter();
             this.updateCamera();
@@ -167,12 +167,12 @@ class CharacterController {
 
     public stop(): void {
         this.isActive = false;
-        this.scene.actionManager.dispose();
+        this._scene.actionManager.dispose();
     }
 
     private updateCamera(): void {
         if (!this.isActive) return;
-        const translation = this.mesh.position;
+        const translation = this._mesh.position;
 
         const tmpX = translation.x;
         const tempY = translation.y;
@@ -184,11 +184,11 @@ class CharacterController {
         this.oldMove.y = tempY;
         this.oldMove.z = tmpZ;
 
-        this.camera.position.x += deltaX;
-        this.camera.position.y += deltaY;
-        this.camera.position.z += deltaZ;
+        this._camera.position.x += deltaX;
+        this._camera.position.y += deltaY;
+        this._camera.position.z += deltaZ;
 
-        this.camera.setTarget(
+        this._camera.setTarget(
             new Vector3(translation.x, translation.y + 1.15, translation.z),
         );
     }
@@ -203,8 +203,8 @@ class CharacterController {
         const right = !!this.keyStatus["d"] || !!this.keyStatus["arrowright"];
 
         if (
-            this.joystick?.getEvent()?.type === "move" &&
-            this.joystick?.getData()?.angle?.radian
+            this._joystick?.getEvent()?.type === "move" &&
+            this._joystick?.getData()?.angle?.radian
         ) {
             this.isMoving = true;
             this.isDancing = false;
@@ -212,17 +212,17 @@ class CharacterController {
             // calculate direction from joystick
             // add additional 90 degree to the right
             const directionOffset: number =
-                -this.joystick.getData().angle?.radian + Math.PI * 0.5;
+                -this._joystick.getData().angle?.radian + Math.PI * 0.5;
 
             // calculate towards camera direction
             const angleYCameraDirection: number = Math.atan2(
-                this.camera.position.x - this.mesh.position.x,
-                this.camera.position.z - this.mesh.position.z,
+                this._camera.position.x - this._mesh.position.x,
+                this._camera.position.z - this._mesh.position.z,
             );
 
             // rotate mesh with respect to camera direction with lerp
-            this.mesh.rotationQuaternion = Quaternion.Slerp(
-                this.mesh.rotationQuaternion!,
+            this._mesh.rotationQuaternion = Quaternion.Slerp(
+                this._mesh.rotationQuaternion!,
                 Quaternion.RotationAxis(
                     Vector3.Up(),
                     angleYCameraDirection + directionOffset,
@@ -234,22 +234,22 @@ class CharacterController {
             // move physics body
 
             // get joystick x and y vectors
-            const joystickVector = this.joystick.getData().vector;
+            const joystickVector = this._joystick.getData().vector;
             this.moveDirection.set(joystickVector.x, 0, joystickVector.y);
             this.moveDirection.scaleInPlace(this.moveSpeed * 100);
 
             // move according to camera's rotation
             this.moveDirection.rotateByQuaternionToRef(
-                this.camera.absoluteRotation,
+                this._camera.absoluteRotation,
                 this.moveDirection,
             );
 
             // get y velocity to make it behave properly
-            const vel = this.meshBody.getLinearVelocity();
+            const vel = this._meshBody.getLinearVelocity();
             this.moveDirection.y = vel.y;
 
             // move
-            this.meshBody.setLinearVelocity(this.moveDirection);
+            this._meshBody.setLinearVelocity(this.moveDirection);
         } else if (forward || backward || left || right) {
             this.isMoving = true;
             this.isDancing = false;
@@ -267,7 +267,7 @@ class CharacterController {
 
             // move according to camera's rotation
             this.moveDirection.rotateByQuaternionToRef(
-                this.camera.absoluteRotation,
+                this._camera.absoluteRotation,
                 this.moveDirection,
             );
 
@@ -276,16 +276,16 @@ class CharacterController {
 
             // calculate towards camera direction
             const angleYCameraDirection = Math.atan2(
-                this.camera.position.x - this.mesh.position.x,
-                this.camera.position.z - this.mesh.position.z,
+                this._camera.position.x - this._mesh.position.x,
+                this._camera.position.z - this._mesh.position.z,
             );
 
             // get direction offset
             const directionOffset = this.calculateDirectionOffset();
 
             // rotate mesh with respect to camera direction with lerp
-            this.mesh.rotationQuaternion = Quaternion.Slerp(
-                this.mesh.rotationQuaternion!,
+            this._mesh.rotationQuaternion = Quaternion.Slerp(
+                this._mesh.rotationQuaternion!,
                 Quaternion.RotationAxis(
                     Vector3.Up(),
                     angleYCameraDirection + directionOffset,
@@ -294,11 +294,11 @@ class CharacterController {
             );
 
             // move the mesh by moving the physics body
-            const vel = this.meshBody.getLinearVelocity();
+            const vel = this._meshBody.getLinearVelocity();
             this.moveDirection.y = vel.y;
-            this.meshBody.setLinearVelocity(this.moveDirection);
+            this._meshBody.setLinearVelocity(this.moveDirection);
         } else {
-            this.meshBody.setLinearVelocity(this.meshBody.getLinearVelocity());
+            this._meshBody.setLinearVelocity(this._meshBody.getLinearVelocity());
             this.isMoving = false;
         }
 
@@ -331,10 +331,9 @@ class CharacterController {
         if (!this.isActive) return;
 
         // make mesh jump
-
-        this.meshBody.applyImpulse(
+        this._meshBody.applyImpulse(
             new Vector3(0, CharacterController.JUMP_FORCE, 0),
-            this.mesh.position,
+            this._mesh.position,
         );
         console.log("called jump");
     }
@@ -405,6 +404,22 @@ class CharacterController {
                 animationGroup.stop();
             }
         });
+    }
+
+    public get scene(): Scene {
+        return this._scene;
+    }
+    public get camera(): ArcRotateCamera {
+        return this._camera;
+    }
+    public get mesh(): AbstractMesh {
+        return this._mesh;
+    }
+    public get meshBody(): PhysicsBody {
+        return this._meshBody;
+    }
+    public get joystick(): Joystick | undefined {
+        return this._joystick;
     }
 
     public dispose(): void {
