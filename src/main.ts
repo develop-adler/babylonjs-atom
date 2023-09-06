@@ -9,7 +9,9 @@ import * as Hammer from "hammerjs";
 import Character from "./components/Character";
 import CharacterController from "./components/CharacterController";
 import Joystick from "./components/Joystick";
+import Atom from "./components/Atoms/Atom";
 import ClassicRoom from "./components/Atoms/ClassicRoom";
+import ModernRoom from "./components/Atoms/ModernRoom";
 
 // using CDN in index.html
 declare function HavokPhysics(): any;
@@ -20,6 +22,7 @@ class App {
     private _scene: BABYLON.Scene;
     private _havok!: HavokPhysicsWithBindings;
     private _camera!: BABYLON.ArcRotateCamera | BABYLON.UniversalCamera;
+    private _atom!: Atom;
     private _character!: Character;
     private _characterController?: CharacterController;
     private _joystick: Joystick;
@@ -48,7 +51,7 @@ class App {
 
         // wait until scene has physics then create scene
         this.initScene().then(async () => {
-            this.createAtom("classic");
+            this._atom = this.createAtom("classic");
             // this.initFirstPersonController();
 
             // thirperson controller mode as default mode
@@ -323,24 +326,37 @@ class App {
         this._scene.onPointerDown = undefined;
     }
 
-    createAtom(type: string): void {
+    createAtom(type: string): Atom {
         switch(type){
             case "classic":
-                new ClassicRoom(this._scene);
-                break;
+                return new ClassicRoom(this._scene);
+            case "modern":
+                return new ModernRoom(this._scene);
         }
+
+        return undefined!;
     }
 
     initCharacter(): void {
         if (this._character) return;
         this._character = new Character(this._scene);
         this._character.init();
+
+        this._character.meshes.forEach((mesh, index) => {
+            if (index === 0) return;
+            this._atom.addToReflectionList(mesh as BABYLON.Mesh);
+        });
     }
 
     async initCharacterAsync(): Promise<void> {
         if (this._character) return;
         this._character = new Character(this._scene);
         await this._character.init();
+
+        this._character.meshes.forEach((mesh, index) => {
+            if (index === 0) return;
+            this._atom.addToReflectionList(mesh as BABYLON.Mesh);
+        });
     }
 
     disposeCharacter(): void {

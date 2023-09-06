@@ -1,5 +1,6 @@
 import {
     AbstractMesh,
+    Mesh,
     Scene,
     SceneLoader,
 } from "@babylonjs/core";
@@ -9,12 +10,12 @@ class ClassicRoom extends Atom {
     private _root: AbstractMesh = null!;
     private _meshes: AbstractMesh[] = [];
 
-    constructor(scene: Scene) {
+    constructor(scene: Scene, reflectionList?: Mesh[]) {
         super(scene, {
             width: 5,
             height: 5,
             depth: 5,
-        });
+        }, reflectionList);
 
         SceneLoader.ImportMesh(
             "",
@@ -29,7 +30,6 @@ class ClassicRoom extends Atom {
                 this._meshes = result.slice(1);
             },
         );
-
     }
     public get root(): AbstractMesh {
         return this._root;

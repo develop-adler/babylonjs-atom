@@ -24,10 +24,12 @@ abstract class Atom {
     private _scene: Scene;
     private _dimensions: AtomDimensions;
     private _ground!: Mesh;
+    private _reflectionList: Mesh[];
 
-    constructor(scene: Scene, dimensions: AtomDimensions) {
+    constructor(scene: Scene, dimensions: AtomDimensions, reflections?: Mesh[]) {
         this._scene = scene;
         this._dimensions = dimensions;
+        this._reflectionList = reflections || [];
 
         const generateSatelliteMaterial = (
             mesh: Mesh,
@@ -107,7 +109,12 @@ abstract class Atom {
             redSphere.rotation.y += 0.01;
         });
 
-        this.generateCollisions([blueSphere, redSphere, greenBox]);
+        this.generateCollisions([
+            ...this._reflectionList,
+            blueSphere,
+            redSphere,
+            greenBox,
+        ]);
     }
     public get dimensions(): AtomDimensions {
         return this._dimensions;
@@ -121,7 +128,7 @@ abstract class Atom {
 
     private generateCollisions(reflectionList: Mesh[]): void {
         // Create, position, and rotate a flat mesh surface.
-        const ground = MeshBuilder.CreateBox(
+        this._ground = MeshBuilder.CreateBox(
             "groundMesh",
             {
                 width: this.dimensions.width * 4,
@@ -130,9 +137,9 @@ abstract class Atom {
             },
             this._scene,
         );
-        ground.checkCollisions = true;
-        ground.visibility = 0.3;
-        ground.receiveShadows = true;
+        this._ground.checkCollisions = true;
+        this._ground.visibility = 0.3;
+        this._ground.receiveShadows = true;
 
         // Create the reflective material for the ground.
         const groundMaterial = new StandardMaterial("mirrorMaterial", this._scene);
@@ -149,9 +156,10 @@ abstract class Atom {
             0,
             0.0,
         );
-        (groundMaterial.reflectionTexture as MirrorTexture).renderList = reflectionList;
+        (groundMaterial.reflectionTexture as MirrorTexture).renderList =
+            reflectionList;
         groundMaterial.reflectionTexture.level = 0.5;
-        ground.material = groundMaterial;
+        this._ground.material = groundMaterial;
 
         const frontWallMesh = MeshBuilder.CreateBox(
             "frontWallMesh",
@@ -205,7 +213,7 @@ abstract class Atom {
         wallRMesh.isVisible = false;
 
         new PhysicsAggregate(
-            ground,
+            this._ground,
             PhysicsShapeType.BOX,
             { mass: 0, restitution: 0.01 },
             this._scene,
@@ -228,6 +236,19 @@ abstract class Atom {
             { mass: 0, restitution: 0.01 },
             this._scene,
         );
+    }
+
+    public addToReflectionList(mesh: Mesh): void {
+        this._reflectionList.push(mesh);
+        const currentReflectionList = (
+            (this._ground.material as StandardMaterial)
+                .reflectionTexture as MirrorTexture
+        ).renderList as Mesh[];
+
+        (
+            (this._ground.material as StandardMaterial)
+                .reflectionTexture as MirrorTexture
+        ).renderList = [...currentReflectionList, mesh];
     }
 }
 
