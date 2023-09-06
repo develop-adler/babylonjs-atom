@@ -271,11 +271,12 @@ class App {
         const dirLight = new BABYLON.DirectionalLight(
             "dirLight",
             new BABYLON.Vector3(-0.5, -1, -0.5),
+            new BABYLON.Vector3(4.5, -20, -5),
             this._scene,
         );
 
-        dirLight.position = new BABYLON.Vector3(30, 20, -10);
-        dirLight.intensity = 2.5;
+        dirLight.position = new BABYLON.Vector3(-3, 40, -5);
+        dirLight.intensity = 1;
         dirLight.shadowEnabled = true;
         dirLight.shadowMinZ = 10;
         dirLight.shadowMaxZ = 60;
