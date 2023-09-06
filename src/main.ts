@@ -270,7 +270,6 @@ class App {
 
         const dirLight = new BABYLON.DirectionalLight(
             "dirLight",
-            new BABYLON.Vector3(-0.5, -1, -0.5),
             new BABYLON.Vector3(4.5, -20, -5),
             this._scene,
         );
