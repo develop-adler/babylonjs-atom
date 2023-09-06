@@ -180,6 +180,9 @@ class App {
         this._camera.keysLeft = [];
         this._camera.keysRight = [];
 
+        // disable panning
+        this._camera.panningSensibility = 0;
+
         this.isThirdperson = true;
     }
 
