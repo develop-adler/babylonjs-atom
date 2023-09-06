@@ -48,7 +48,7 @@ class App {
 
         // wait until scene has physics then create scene
         this.initScene().then(async () => {
-            this.createAtom();
+            this.createAtom("classic");
             // this.initFirstPersonController();
 
             // thirperson controller mode as default mode
@@ -318,9 +318,12 @@ class App {
         this._scene.onPointerDown = undefined;
     }
 
-    createAtom(): void {
-        const classicRoom = new ClassicRoom(this._scene);
-        console.log(classicRoom);
+    createAtom(type: string): void {
+        switch(type){
+            case "classic":
+                new ClassicRoom(this._scene);
+                break;
+        }
     }
 
     initCharacter(): void {
