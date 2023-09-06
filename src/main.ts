@@ -52,14 +52,13 @@ class App {
         // wait until scene has physics then create scene
         this.initScene().then(async () => {
             this._atom = this.createAtom("classic");
-            // this.initFirstPersonController();
 
             // thirperson controller mode as default mode
             this.initThirdPersonController();
             await this.initCharacterAsync();
             this._characterController = new CharacterController(
-                this._character!.root as BABYLON.Mesh,
-                this._character!.physicsBody as BABYLON.PhysicsBody,
+                this._character.root as BABYLON.Mesh,
+                this._character.physicsBody,
                 this._camera as BABYLON.ArcRotateCamera,
                 this._scene,
                 this._joystick,
@@ -67,7 +66,7 @@ class App {
 
             this.createLight();
 
-            this.initControls();
+            this.initInputControls();
 
             // hide loading screen
             this._engine.hideLoadingUI();
@@ -237,7 +236,7 @@ class App {
         this.isThirdperson = true;
     }
 
-    private initControls(): void {
+    private initInputControls(): void {
         // Keyboard input
         this._scene.onKeyboardObservable.add(async kbInfo => {
             if (kbInfo.type === BABYLON.KeyboardEventTypes.KEYDOWN) {

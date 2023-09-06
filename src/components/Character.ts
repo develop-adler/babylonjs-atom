@@ -20,9 +20,11 @@ class Character {
     private _animations: {
         [key: string]: AnimationGroup;
     } = {};
-    private capsuleHeight: number = 2.5;
     private _capsuleMesh: Mesh;
     private _physicsAggregate: PhysicsAggregate;
+
+    private static readonly CAPSULE_HEIGHT = 2.5;
+    private static readonly CAPSULE_RADIUS = 0.55;
 
     constructor(scene: Scene) {
         this._scene = scene;
@@ -31,15 +33,15 @@ class Character {
         this._capsuleMesh = MeshBuilder.CreateCapsule(
             "sphereMesh",
             {
-                radius: 0.55,
-                height: this.capsuleHeight,
+                radius: Character.CAPSULE_RADIUS,
+                height: Character.CAPSULE_HEIGHT,
                 tessellation: 2,
                 subdivisions: 1,
             },
             this._scene,
         );
         this._capsuleMesh.isVisible = false;
-        this._capsuleMesh.position = new Vector3(0, this.capsuleHeight * 0.5, 0);
+        this._capsuleMesh.position = new Vector3(0, Character.CAPSULE_HEIGHT * 0.5, 0);
 
         const physicsAggregate = new PhysicsAggregate(
             this._capsuleMesh,
@@ -139,7 +141,7 @@ class Character {
         });
 
         this.physicsAggregate.body.disablePreStep = false;
-        this._capsuleMesh.position = new Vector3(0, this.capsuleHeight * 0.5, 0);
+        this._capsuleMesh.position = new Vector3(0, Character.CAPSULE_HEIGHT * 0.5, 0);
         this._scene.onAfterPhysicsObservable.addOnce(() => {
             this.physicsAggregate.body.disablePreStep = true;
         });
@@ -152,17 +154,23 @@ class Character {
             animation.dispose();
         });
 
-        if (!this._meshes) return;
+        this._scene.animationPropertiesOverride = null;
+        if (this._root) {
+            this._scene.removeMesh(this._root);
+            this._root.dispose(false, true);
+        }
 
-        this._meshes.forEach(mesh => {
-            this._scene.removeMesh(mesh);
-            mesh.dispose(false, true);
-        });
+        if (this._meshes) {
+            this._meshes.forEach(mesh => {
+                this._scene.removeMesh(mesh);
+                mesh.dispose(false, true);
+            });
+        }
+
+        this._physicsAggregate.dispose();
 
         this._scene.removeMesh(this._capsuleMesh);
         this._capsuleMesh.dispose();
-
-        this._scene.animationPropertiesOverride = null;
     }
 }
 
