@@ -14,7 +14,7 @@ class Joystick {
         joystickContainer.id = "joystick";
         joystickContainer.style.position = "absolute";
         joystickContainer.style.bottom = "15%";
-        joystickContainer.style.left = "10%";
+        joystickContainer.style.left = "15%";
         joystickContainer.style.zIndex = "10";
         document.getElementById("app")!.appendChild(joystickContainer);
 
