@@ -108,8 +108,6 @@ class App {
                 }
             `;
             document.getElementsByTagName('head')[0].appendChild(customLoadingScreenCss);
-            // this._resizeLoadingUI();
-            // window.addEventListener("resize", this._resizeLoadingUI);
             document.body.appendChild(loadingDiv);
 
             const loadingGif = document.createElement("img");
