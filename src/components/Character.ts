@@ -1,6 +1,7 @@
 import {
     AbstractMesh,
     AnimationGroup,
+    AnimationPropertiesOverride,
     Mesh,
     MeshBuilder,
     PhysicsAggregate,
@@ -69,6 +70,11 @@ class Character {
         this._meshes = meshes;
         this._root = meshes[0];
 
+        this._scene.animationPropertiesOverride = new AnimationPropertiesOverride();
+        this._scene.animationPropertiesOverride.enableBlending = true;
+        this._scene.animationPropertiesOverride.blendingSpeed = 0.07;
+        this._scene.animationPropertiesOverride.loopMode = 1;
+
         // play Idle animation
         // 0: Crouch
         // 1: Idle
@@ -76,6 +82,7 @@ class Character {
         // 3: Run
         // 4: SneakWalk
         // 5: Walk
+        animationGroups[0].stop();
         animationGroups[1].start(
             true,
             1.0,
@@ -154,6 +161,8 @@ class Character {
 
         this._scene.removeMesh(this._capsuleMesh);
         this._capsuleMesh.dispose();
+
+        this._scene.animationPropertiesOverride = null;
     }
 }
 
