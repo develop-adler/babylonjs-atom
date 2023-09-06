@@ -23,6 +23,7 @@ interface AtomDimensions {
 abstract class Atom {
     private _scene: Scene;
     private _dimensions: AtomDimensions;
+    private _ground!: Mesh;
 
     constructor(scene: Scene, dimensions: AtomDimensions) {
         this._scene = scene;
@@ -31,7 +32,7 @@ abstract class Atom {
         const generateSatelliteMaterial = (
             mesh: Mesh,
             color: Color3,
-            others: Mesh[],
+            reflectionList: Mesh[],
         ) => {
             const material = new StandardMaterial("satelliteMat" + mesh.name, scene);
             material.diffuseColor = color;
@@ -41,8 +42,8 @@ abstract class Atom {
                 512,
                 scene,
             );
-            for (let index = 0; index < others.length; index++) {
-                probe.renderList?.push(others[index]);
+            for (let index = 0; index < reflectionList.length; index++) {
+                probe.renderList?.push(reflectionList[index]);
             }
 
             material.reflectionTexture = probe.cubeTexture;
@@ -83,6 +84,42 @@ abstract class Atom {
         );
         greenBox.setPivotMatrix(Matrix.Translation(0, 1.5, 1), false);
 
+        generateSatelliteMaterial(blueSphere, Color3.Blue(), [
+            redSphere,
+            greenBox,
+            this._ground,
+        ]);
+        generateSatelliteMaterial(redSphere, Color3.Red(), [
+            blueSphere,
+            greenBox,
+            this._ground,
+        ]);
+        generateSatelliteMaterial(greenBox, Color3.Green(), [
+            blueSphere,
+            redSphere,
+            this._ground,
+        ]);
+
+        // Animations
+        scene.registerBeforeRender(() => {
+            blueSphere.rotation.y += 0.01;
+            greenBox.rotation.y -= 0.01;
+            redSphere.rotation.y += 0.01;
+        });
+
+        this.generateCollisions([blueSphere, redSphere, greenBox]);
+    }
+    public get dimensions(): AtomDimensions {
+        return this._dimensions;
+    }
+    public set dimensions(dimensions: AtomDimensions) {
+        this._dimensions = dimensions;
+    }
+    public get scene(): Scene {
+        return this._scene;
+    }
+
+    private generateCollisions(reflectionList: Mesh[]): void {
         // Create, position, and rotate a flat mesh surface.
         const ground = MeshBuilder.CreateBox(
             "groundMesh",
@@ -91,18 +128,18 @@ abstract class Atom {
                 depth: this.dimensions.height * 4,
                 height: 0.01,
             },
-            scene,
+            this._scene,
         );
         ground.checkCollisions = true;
         ground.visibility = 0.3;
 
         // Create the reflective material for the ground.
-        const groundMaterial = new StandardMaterial("mirrorMaterial", scene);
+        const groundMaterial = new StandardMaterial("mirrorMaterial", this._scene);
         groundMaterial.diffuseColor = Color3.Black();
         groundMaterial.reflectionTexture = new MirrorTexture(
             "mirrorMaterial",
             1024,
-            scene,
+            this._scene,
             true,
         );
         (groundMaterial.reflectionTexture as MirrorTexture).mirrorPlane = new Plane(
@@ -111,12 +148,9 @@ abstract class Atom {
             0,
             0.0,
         );
-        (groundMaterial.reflectionTexture as MirrorTexture).renderList = [
-            blueSphere,
-            redSphere,
-            greenBox,
-        ];
+        (groundMaterial.reflectionTexture as MirrorTexture).renderList = reflectionList;
         groundMaterial.reflectionTexture.level = 0.5;
+        ground.material = groundMaterial;
 
         const frontWallMesh = MeshBuilder.CreateBox(
             "frontWallMesh",
@@ -125,7 +159,7 @@ abstract class Atom {
                 depth: 0.01,
                 height: this.dimensions.height * 4,
             },
-            scene,
+            this._scene,
         );
         frontWallMesh.position = new Vector3(
             0,
@@ -142,7 +176,7 @@ abstract class Atom {
                 depth: this.dimensions.depth * 4,
                 height: this.dimensions.height * 4,
             },
-            scene,
+            this._scene,
         );
         wallLMesh.position = new Vector3(
             this.dimensions.width * 2,
@@ -159,7 +193,7 @@ abstract class Atom {
                 depth: this.dimensions.depth * 4,
                 height: this.dimensions.height * 4,
             },
-            scene,
+            this._scene,
         );
         wallRMesh.position = new Vector3(
             -this.dimensions.width * 2,
@@ -173,60 +207,26 @@ abstract class Atom {
             ground,
             PhysicsShapeType.BOX,
             { mass: 0, restitution: 0.01 },
-            scene,
+            this._scene,
         );
         new PhysicsAggregate(
             frontWallMesh,
             PhysicsShapeType.BOX,
             { mass: 0, restitution: 0.01 },
-            scene,
+            this._scene,
         );
         new PhysicsAggregate(
             wallLMesh,
             PhysicsShapeType.BOX,
             { mass: 0, restitution: 0.01 },
-            scene,
+            this._scene,
         );
         new PhysicsAggregate(
             wallRMesh,
             PhysicsShapeType.BOX,
             { mass: 0, restitution: 0.01 },
-            scene,
+            this._scene,
         );
-
-        generateSatelliteMaterial(blueSphere, Color3.Blue(), [
-            redSphere,
-            greenBox,
-            ground,
-        ]);
-        generateSatelliteMaterial(redSphere, Color3.Red(), [
-            blueSphere,
-            greenBox,
-            ground,
-        ]);
-        generateSatelliteMaterial(greenBox, Color3.Green(), [
-            blueSphere,
-            redSphere,
-            ground,
-        ]);
-
-        ground.material = groundMaterial;
-
-        // Animations
-        scene.registerBeforeRender(() => {
-            blueSphere.rotation.y += 0.01;
-            greenBox.rotation.y -= 0.01;
-            redSphere.rotation.y += 0.01;
-        });
-    }
-    get dimensions(): AtomDimensions {
-        return this._dimensions;
-    }
-    set dimensions(dimensions: AtomDimensions) {
-        this._dimensions = dimensions;
-    }
-    get scene(): Scene {
-        return this._scene;
     }
 }
 
