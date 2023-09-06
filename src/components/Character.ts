@@ -52,8 +52,9 @@ class Character {
 
         // lock rotation by disabling intertia
         this._physicsAggregate.body.setMassProperties({
-            inertia: new Vector3(0, 0, 0),
+            inertia: Vector3.Zero(),
         });
+
         // prevent sliding around
         this._physicsAggregate.body.setLinearDamping(50);
     }
