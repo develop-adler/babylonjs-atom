@@ -31,7 +31,7 @@ class App {
     private isThirdperson: boolean = false;
 
     constructor() {
-        // this.initHUD();
+        this.initLoadingScreen();
 
         this._canvas = document.createElement("canvas");
         this._canvas.style.width = "100%";
@@ -89,7 +89,57 @@ class App {
         });
     }
 
-    async initScene(): Promise<void> {
+    private initLoadingScreen(): void {
+        BABYLON.DefaultLoadingScreen.prototype.displayLoadingUI = () => {
+            if (document.getElementById("customLoadingScreenDiv")) {
+                // Do not add a loading screen if there is already one
+                document.getElementById("customLoadingScreenDiv")!.style.display = "initial";
+                return;
+            }
+            const loadingDiv = document.createElement("div");
+            loadingDiv.id = "customLoadingScreenDiv";
+            const customLoadingScreenCss = document.createElement('style');
+            customLoadingScreenCss.innerHTML = `
+                #customLoadingScreenDiv {
+                    width: 100vw;
+                    height: 100vh;
+                    background: #1d1d1d;
+                    z-index: 1000;
+                }
+            `;
+            document.getElementsByTagName('head')[0].appendChild(customLoadingScreenCss);
+            // this._resizeLoadingUI();
+            // window.addEventListener("resize", this._resizeLoadingUI);
+            document.body.appendChild(loadingDiv);
+
+            const loadingGif = document.createElement("img");
+            loadingGif.id = "customLoadingScreenGif";
+            loadingGif.src = "/loading.gif";
+            loadingGif.alt = "Loading...";
+            const customLoadingScreenGifCss = document.createElement('style');
+            customLoadingScreenGifCss.innerHTML = `
+                #customLoadingScreenGif {
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    width: 10rem;
+                    height: auto;
+                    user-select: none;
+                    pointer-events: none;
+                }
+            `;
+            document.getElementsByTagName('head')[0].appendChild(customLoadingScreenGifCss);
+
+            loadingDiv.appendChild(loadingGif);
+        };
+
+        BABYLON.DefaultLoadingScreen.prototype.hideLoadingUI = () => {
+            document.getElementById("customLoadingScreenDiv")!.style.display = "none";
+        }
+    }
+
+    private async initScene(): Promise<void> {
         const envMapTexture = BABYLON.CubeTexture.CreateFromPrefilteredData(
             "/envMap/sky.env",
             this._scene,
@@ -109,7 +159,7 @@ class App {
         this._scene.collisionsEnabled = true;
     }
 
-    initFirstPersonController(pointerLock: boolean = false): void {
+    private initFirstPersonController(pointerLock: boolean = false): void {
         this.resetCamera();
 
         this._camera = new BABYLON.UniversalCamera(
@@ -146,7 +196,7 @@ class App {
         this.isThirdperson = false;
     }
 
-    initThirdPersonController(): void {
+    private initThirdPersonController(): void {
         if (this.isThirdperson) return;
         this.resetCamera();
 
@@ -189,7 +239,7 @@ class App {
         this.isThirdperson = true;
     }
 
-    initControls(): void {
+    private initControls(): void {
         // Keyboard input
         this._scene.onKeyboardObservable.add(async kbInfo => {
             if (kbInfo.type === BABYLON.KeyboardEventTypes.KEYDOWN) {
@@ -260,7 +310,7 @@ class App {
         });
     }
 
-    createLight(): void {
+    private createLight(): void {
         // This creates a light, aiming 0,1,0 - to the sky (non-mesh)
         const hemiLight = new BABYLON.HemisphericLight(
             "hemiLight",
@@ -304,7 +354,7 @@ class App {
         // TODO: add atom shadows
     }
 
-    createLightGizmo(customLight: BABYLON.Light): void {
+    private createLightGizmo(customLight: BABYLON.Light): void {
         const lightGizmo = new BABYLON.LightGizmo();
         lightGizmo.scaleRatio = 2;
         lightGizmo.light = customLight;
@@ -316,7 +366,7 @@ class App {
         gizmoManager.attachToMesh(lightGizmo.attachedMesh);
     }
 
-    resetCamera(): void {
+    private resetCamera(): void {
         this._scene.removeCamera(this._camera);
         if (this._camera instanceof BABYLON.ArcRotateCamera) {
             this._camera.dispose();
@@ -326,8 +376,8 @@ class App {
         this._scene.onPointerDown = undefined;
     }
 
-    createAtom(type: string): Atom {
-        switch(type){
+    private createAtom(type: string): Atom {
+        switch (type) {
             case "classic":
                 return new ClassicRoom(this._scene);
             case "modern":
@@ -337,18 +387,18 @@ class App {
         return undefined!;
     }
 
-    initCharacter(): void {
-        if (this._character) return;
-        this._character = new Character(this._scene);
-        this._character.init();
+    // private initCharacter(): void {
+    //     if (this._character) return;
+    //     this._character = new Character(this._scene);
+    //     this._character.init();
 
-        this._character.meshes.forEach((mesh, index) => {
-            if (index === 0) return;
-            this._atom.addToReflectionList(mesh as BABYLON.Mesh);
-        });
-    }
+    //     this._character.meshes.forEach((mesh, index) => {
+    //         if (index === 0) return;
+    //         this._atom.addToReflectionList(mesh as BABYLON.Mesh);
+    //     });
+    // }
 
-    async initCharacterAsync(): Promise<void> {
+    private async initCharacterAsync(): Promise<void> {
         if (this._character) return;
         this._character = new Character(this._scene);
         await this._character.init();
@@ -359,17 +409,17 @@ class App {
         });
     }
 
-    disposeCharacter(): void {
+    private disposeCharacter(): void {
         this._character?.dispose();
         this._character = null!;
     }
 
-    stopCharacterController(): void {
+    private stopCharacterController(): void {
         this._characterController?.dispose();
         this._characterController = null!;
     }
 
-    dispose(): void {
+    private dispose(): void {
         // dispose cameras
         this._scene.cameras.forEach(camera => {
             camera.dispose();
