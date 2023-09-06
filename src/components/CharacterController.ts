@@ -6,7 +6,9 @@ import {
     ExecuteCodeAction,
     KeyboardEventTypes,
     PhysicsBody,
+    PhysicsRaycastResult,
     Quaternion,
+    Ray,
     Scene,
     Vector3,
 } from "@babylonjs/core";
@@ -19,6 +21,9 @@ class CharacterController {
     private _mesh: AbstractMesh;
     private _meshBody: PhysicsBody;
     private _joystick?: Joystick;
+    private _raycaster: Ray;
+    private _raycastResult: PhysicsRaycastResult;
+
     private animations: {
         [key: string]: AnimationGroup;
     } = {};
@@ -51,7 +56,8 @@ class CharacterController {
     private static readonly CROUCH_SPEED: number = 0.015;
     private static readonly WALK_SPEED: number = 0.03;
     private static readonly RUN_SPEED: number = 0.08;
-    private static readonly JUMP_FORCE: number = 500;
+    private static readonly JUMP_FORCE: number = 1000;
+    private static readonly DISTANCE_FROM_WALL: number = 0.8;
 
     private animSpeed: number = 1.0;
     private moveSpeed: number = CharacterController.WALK_SPEED;
@@ -68,6 +74,9 @@ class CharacterController {
         this._camera = camera;
         this._scene = scene;
         this._joystick = joystick;
+
+        this._raycaster = new Ray(new Vector3(0, 0, 0), new Vector3(0, 1, 0));
+        this._raycastResult = new PhysicsRaycastResult();
 
         if (this._joystick !== undefined) {
             const handleJoystickMove = (
@@ -160,6 +169,7 @@ class CharacterController {
             if (!this.isActive) return;
             this.updateCharacter();
             this.updateCamera();
+            this.updateCharacterAnimation();
         });
 
         this.isActive = true;
@@ -168,6 +178,32 @@ class CharacterController {
     public stop(): void {
         this.isActive = false;
         this._scene.actionManager.dispose();
+    }
+
+    private updateCharacterAnimation(): void {
+        if (this.isMoving) {
+            if (this.isCrouching) {
+                // play sneakwalk animation if shift is held
+                this.playAnimation("sneakwalk");
+            } else {
+                if (!this.isRunning) {
+                    this.playAnimation("walk");
+                    return;
+                }
+                this.playAnimation("run");
+            }
+        } else {
+            if (this.isDancing) {
+                // play dance animation if g is pressed
+                this.playAnimation("rumba");
+            } else if (this.isCrouching) {
+                // play crouch animation if shift is held
+                this.playAnimation("crouch");
+            } else {
+                // play idle animation if no movement keys are pressed
+                this.playAnimation("idle");
+            }
+        }
     }
 
     private updateCamera(): void {
@@ -191,6 +227,8 @@ class CharacterController {
         this._camera.setTarget(
             new Vector3(translation.x, translation.y + 1.15, translation.z),
         );
+
+        this.updateRaycaster();
     }
 
     private updateCharacter(): void {
@@ -301,30 +339,69 @@ class CharacterController {
             this._meshBody.setLinearVelocity(this._meshBody.getLinearVelocity());
             this.isMoving = false;
         }
+    }
 
-        if (this.isMoving) {
-            if (this.isCrouching) {
-                // play sneakwalk animation if shift is held
-                this.playAnimation("sneakwalk");
-            } else {
-                if (!this.isRunning) {
-                    this.playAnimation("walk");
-                    return;
-                }
-                this.playAnimation("run");
-            }
-        } else {
-            if (this.isDancing) {
-                // play dance animation if g is pressed
-                this.playAnimation("rumba");
-            } else if (this.isCrouching) {
-                // play crouch animation if shift is held
-                this.playAnimation("crouch");
-            } else {
-                // play idle animation if no movement keys are pressed
-                this.playAnimation("idle");
-            }
+    // this prevents camera from clipping through walls
+    updateRaycaster() {
+        if (!this._scene.getPhysicsEngine()) return;
+
+        const from = new Vector3(
+            this._mesh.position.x,
+            this._mesh.position.y + 1.15,
+            this._mesh.position.z,
+        );
+        const to = new Vector3(
+            this.camera.position.x,
+            this.camera.position.y,
+            this.camera.position.z,
+        );
+
+        const target = new Vector3(
+            this._mesh.position.x,
+            this._mesh.position.y + 1.15,
+            this._mesh.position.z,
+        );
+
+        this._scene.createPickingRayToRef(
+            this._scene.pointerX,
+            this._scene.pointerY,
+            null,
+            this._raycaster,
+            this._camera,
+        );
+
+        (this._scene.getPhysicsEngine() as any)!.raycastToRef(from, to, this._raycastResult);
+
+        if (this._raycastResult.hasHit) {
+            const hitPoint = this._raycastResult.hitPointWorld;
+
+            const direction = hitPoint
+                .clone()
+                .subtractInPlace(this._camera.position)
+                .normalize();
+
+            // Computes the distance from hitPoint to this._camera.position
+            const distance = Vector3.Distance(hitPoint, this._camera.position);
+
+            // Computes the new position of the camera
+            const newPosition = hitPoint.subtract(
+                direction.scale(CharacterController.DISTANCE_FROM_WALL * distance),
+            );
+
+            // update the max distance of camera
+            this._camera.upperRadiusLimit = Vector3.Distance(hitPoint, target);
+
+            // Lerp camera position
+            const lerpFactor = 0.8; // Adjust this value for different speeds
+            this._camera.position = Vector3.Lerp(this._camera.position, newPosition, lerpFactor);
+
+            this._raycastResult.reset();
+
+            return;
         }
+
+        // reset max distance of camera
+        this._camera.upperRadiusLimit = 10;
     }
 
     private jump(): void {
