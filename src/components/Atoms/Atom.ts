@@ -132,6 +132,7 @@ abstract class Atom {
         );
         ground.checkCollisions = true;
         ground.visibility = 0.3;
+        ground.receiveShadows = true;
 
         // Create the reflective material for the ground.
         const groundMaterial = new StandardMaterial("mirrorMaterial", this._scene);

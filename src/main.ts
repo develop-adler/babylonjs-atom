@@ -297,6 +297,8 @@ class App {
             mesh.receiveShadows = true;
             shadowGenerator.addShadowCaster(mesh);
         });
+
+        // TODO: add atom shadows
     }
 
     createLightGizmo(customLight: BABYLON.Light): void {
