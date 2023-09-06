@@ -392,8 +392,7 @@ class App {
     //     this._character = new Character(this._scene);
     //     this._character.init();
 
-    //     this._character.meshes.forEach((mesh, index) => {
-    //         if (index === 0) return;
+    //     this._character.meshes.forEach(mesh => {
     //         this._atom.addToReflectionList(mesh as BABYLON.Mesh);
     //     });
     // }
@@ -403,8 +402,7 @@ class App {
         this._character = new Character(this._scene);
         await this._character.init();
 
-        this._character.meshes.forEach((mesh, index) => {
-            if (index === 0) return;
+        this._character.meshes.forEach(mesh => {
             this._atom.addToReflectionList(mesh as BABYLON.Mesh);
         });
     }
