@@ -193,15 +193,19 @@ class CharacterController {
                 this.playAnimation("run");
             }
         } else {
-            if (this.isDancing) {
+            switch (true) {
                 // play dance animation if g is pressed
-                this.playAnimation("rumba");
-            } else if (this.isCrouching) {
+                case this.isDancing:
+                    this.playAnimation("rumba");
+                    break;
                 // play crouch animation if shift is held
-                this.playAnimation("crouch");
-            } else {
+                case this.isCrouching:
+                    this.playAnimation("crouch");
+                    break;
                 // play idle animation if no movement keys are pressed
-                this.playAnimation("idle");
+                default:
+                    this.playAnimation("idle");
+                    break;
             }
         }
     }
@@ -292,8 +296,8 @@ class CharacterController {
             this.isMoving = true;
             this.isDancing = false;
 
-            this.frontVector.set(0, 0, forward ? 1 : backward ? -1 : 0);
-            this.sideVector.set(left ? 1 : right ? -1 : 0, 0, 0);
+            this.frontVector.set(0, 0, Number(forward) - Number(backward));
+            this.sideVector.set(Number(left) - Number(right), 0, 0);
 
             this.moveDirection.set(
                 this.frontVector.x - this.sideVector.x,
@@ -370,7 +374,11 @@ class CharacterController {
             this._camera,
         );
 
-        (this._scene.getPhysicsEngine() as any)!.raycastToRef(from, to, this._raycastResult);
+        (this._scene.getPhysicsEngine() as any)!.raycastToRef(
+            from,
+            to,
+            this._raycastResult,
+        );
 
         if (this._raycastResult.hasHit) {
             const hitPoint = this._raycastResult.hitPointWorld;
@@ -393,7 +401,11 @@ class CharacterController {
 
             // Lerp camera position
             const lerpFactor = 0.8; // Adjust this value for different speeds
-            this._camera.position = Vector3.Lerp(this._camera.position, newPosition, lerpFactor);
+            this._camera.position = Vector3.Lerp(
+                this._camera.position,
+                newPosition,
+                lerpFactor,
+            );
 
             this._raycastResult.reset();
 
@@ -435,9 +447,6 @@ class CharacterController {
                     case this.keyStatus["a"] || this.keyStatus["arrowleft"]:
                         directionOffset = -Math.PI * 0.25; // w + a
                         break;
-                    default:
-                        directionOffset = 0; // w
-                        break;
                 }
                 break;
             case this.keyStatus["s"] || this.keyStatus["arrowdown"]:
@@ -458,9 +467,6 @@ class CharacterController {
                 break;
             case this.keyStatus["a"] || this.keyStatus["arrowleft"]:
                 directionOffset = -Math.PI * 0.5; // a
-                break;
-            default:
-                directionOffset = 0; // s
                 break;
         }
 
