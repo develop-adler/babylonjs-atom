@@ -67,7 +67,6 @@ class Furniture {
             physicsMesh.rotation = this._options.rotation ?? Vector3.Zero();
             physicsMesh.position.y +=
                 physicsMesh.getBoundingInfo().boundingBox.extendSize.y;
-            physicsMesh.isVisible = false;
 
             this._physicsAggregate = new PhysicsAggregate(
                 physicsMesh,
@@ -87,8 +86,8 @@ class Furniture {
             );
             physicsMesh.position = this._options.position ?? Vector3.Zero();
             physicsMesh.rotation = this._options.rotation ?? Vector3.Zero();
-            physicsMesh.position.y += physicsMesh.getBoundingInfo().boundingBox.extendSize.y;
-            physicsMesh.isVisible = false;
+            physicsMesh.position.y +=
+                physicsMesh.getBoundingInfo().boundingBox.extendSize.y;
 
             this._physicsAggregate = new PhysicsAggregate(
                 physicsMesh,
@@ -98,10 +97,12 @@ class Furniture {
             );
         }
 
+        physicsMesh.isVisible = false;
+        physicsMesh.checkCollisions = true;
         this._physicsAggregate.body.setMotionType(0); // static
 
-        this._root.position.x = physicsMesh.position.x;
-        this._root.position.z = physicsMesh.position.z;
+        this._root.position.copyFrom(physicsMesh.position);
+        this._root.position.y -= meshBB.extendSize.y;
         this._root.rotationQuaternion?.copyFrom(physicsMesh.rotationQuaternion!);
     }
 
