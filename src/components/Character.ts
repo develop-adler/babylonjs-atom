@@ -23,7 +23,7 @@ class Character {
     private _capsuleMesh!: Mesh;
     private _physicsAggregate!: PhysicsAggregate;
 
-    private static readonly CAPSULE_HEIGHT = 2.6;
+    private static readonly CAPSULE_HEIGHT = 1.75;
     private static readonly CAPSULE_RADIUS = 0.5;
 
     constructor(scene: Scene) {
@@ -81,20 +81,9 @@ class Character {
             false,
         );
 
-        this._root.scaling.scaleInPlace(1.5);
-
-        // re-center character's pivot point for physics body
-        let characterHeight = 0;
-        this._root.getChildMeshes().forEach(mesh => {
-            if (mesh.name === "Beta_Joints.001") {
-                characterHeight = mesh.getBoundingInfo().boundingBox.maximumWorld.y;
-                return;
-            }
-        });
-        this._root.setPivotPoint(new Vector3(0, characterHeight * 1.6, 0));
-
         this._scene.registerBeforeRender(() => {
             this._root.position.copyFrom(this._capsuleMesh.position);
+            this._root.position.y -= Character.CAPSULE_HEIGHT * 0.5;
         });
     }
 
