@@ -229,7 +229,7 @@ class CharacterController {
         this._camera.position.z += deltaZ;
 
         this._camera.setTarget(
-            new Vector3(translation.x, translation.y + 1.15, translation.z),
+            new Vector3(translation.x, translation.y + 1.65, translation.z),
         );
 
         this.updateRaycaster();
