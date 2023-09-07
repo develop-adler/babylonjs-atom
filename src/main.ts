@@ -12,6 +12,7 @@ import Joystick from "./components/Joystick";
 import Atom from "./components/Atoms/Atom";
 import ClassicRoom from "./components/Atoms/ClassicRoom";
 import ModernRoom from "./components/Atoms/ModernRoom";
+import LoadingUI from "./components/LoadingUI";
 
 // using CDN in index.html
 declare function HavokPhysics(): any;
@@ -31,7 +32,7 @@ class App {
     private isThirdperson: boolean = false;
 
     constructor() {
-        this.initLoadingScreen();
+        new LoadingUI();
 
         this._canvas = document.createElement("canvas");
         this._canvas.style.width = "100%";
@@ -86,65 +87,6 @@ class App {
                 this.dispose();
             };
         });
-    }
-
-    private initLoadingScreen(): void {
-        BABYLON.DefaultLoadingScreen.prototype.displayLoadingUI = () => {
-            if (document.getElementById("customLoadingScreenDiv")) {
-                // Do not add a loading screen if there is already one
-                document.getElementById("customLoadingScreenDiv")!.style.display =
-                    "initial";
-                return;
-            }
-            const loadingDiv = document.createElement("div");
-            loadingDiv.id = "customLoadingScreenDiv";
-            const customLoadingScreenCss = document.createElement("style");
-            customLoadingScreenCss.innerHTML = `
-                #customLoadingScreenDiv {
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    width: 100vw;
-                    height: 100vh;
-                    background: #1d1d1d;
-                    padding: 0;
-                    border: none;
-                    overflow: hidden;
-                    z-index: 1000;
-                }
-            `;
-            document
-                .getElementsByTagName("head")[0]
-                .appendChild(customLoadingScreenCss);
-            document.body.appendChild(loadingDiv);
-
-            const loadingGif = document.createElement("img");
-            loadingGif.id = "customLoadingScreenGif";
-            loadingGif.src = "/loading.gif";
-            loadingGif.alt = "Loading...";
-            const customLoadingScreenGifCss = document.createElement("style");
-            customLoadingScreenGifCss.innerHTML = `
-                #customLoadingScreenGif {
-                    position: absolute;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%);
-                    width: 10rem;
-                    height: auto;
-                    user-select: none;
-                    pointer-events: none;
-                }
-            `;
-            document
-                .getElementsByTagName("head")[0]
-                .appendChild(customLoadingScreenGifCss);
-
-            loadingDiv.appendChild(loadingGif);
-        };
-
-        BABYLON.DefaultLoadingScreen.prototype.hideLoadingUI = () => {
-            document.getElementById("customLoadingScreenDiv")!.style.display = "none";
-        };
     }
 
     private async initScene(): Promise<void> {
