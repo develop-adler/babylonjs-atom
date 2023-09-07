@@ -363,15 +363,11 @@ class App {
     //     if (this._character) return;
     //     this._character = new Character(this._scene);
     //     this._character.init();
-
-    //     this._character.meshes.forEach(mesh => {
-    //         this._atom.addToReflectionList(mesh as BABYLON.Mesh);
-    //     });
     // }
 
     private async initCharacterAsync(): Promise<void> {
         if (this._character) return;
-        this._character = new Character(this._scene);
+        this._character = new Character(this._scene, this._atom);
         await this._character.init();
 
         this._character.meshes.forEach(mesh => {

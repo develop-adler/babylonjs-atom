@@ -12,9 +12,11 @@ import {
     SceneLoader,
     Vector3,
 } from "@babylonjs/core";
+import Atom from "./Atoms/Atom";
 
 class Character {
     private _scene: Scene;
+    private _atom: Atom;
     private _root!: AbstractMesh;
     private _meshes!: AbstractMesh[];
     private _animations: {
@@ -26,8 +28,9 @@ class Character {
     private static readonly CAPSULE_HEIGHT = 1.75;
     private static readonly CAPSULE_RADIUS = 0.5;
 
-    constructor(scene: Scene) {
+    constructor(scene: Scene, atom: Atom) {
         this._scene = scene;
+        this._atom = atom;
         this.generateCollision();
     }
 
@@ -80,6 +83,10 @@ class Character {
             animationGroups[1].to,
             false,
         );
+
+        this._meshes.forEach((mesh) => {
+            this._atom.addToReflectionList(mesh as Mesh);
+        });
 
         this._scene.registerBeforeRender(() => {
             this._root.position.copyFrom(this._capsuleMesh.position);
