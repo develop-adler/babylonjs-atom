@@ -12,7 +12,7 @@ import Joystick from "./components/Joystick";
 import Atom from "./components/Atoms/Atom";
 import ClassicRoom from "./components/Atoms/ClassicRoom";
 import ModernRoom from "./components/Atoms/ModernRoom";
-import Furniture from "./components/Furnitures/Furniture";
+import Furniture from "./components/Furniture";
 import LoadingUI from "./components/LoadingUI";
 
 // using CDN in index.html
@@ -70,23 +70,23 @@ class App {
 
             this.initInputControls();
 
-            new Furniture("table_001.glb", this._scene, {
+            new Furniture("table_001.glb", this._scene, this._atom, {
                 position: new BABYLON.Vector3(3, 0, 2),
-                type: "cylinder"
+                type: "cylinder",
             });
-            new Furniture("table_002.glb", this._scene, {
+            new Furniture("table_002.glb", this._scene, this._atom, {
                 position: new BABYLON.Vector3(5, 0, 3),
-                type: "cylinder"
+                type: "cylinder",
             });
-            new Furniture("table_003.glb", this._scene, {
+            new Furniture("table_003.glb", this._scene, this._atom, {
                 position: new BABYLON.Vector3(1, 0, 4),
             });
 
-            new Furniture("sofa_001.glb", this._scene, {
+            new Furniture("sofa_001.glb", this._scene, this._atom, {
                 position: new BABYLON.Vector3(0, 0, -4),
                 rotation: new BABYLON.Vector3(0, Math.PI, 0),
             });
-            new Furniture("sofa_002.glb", this._scene, {
+            new Furniture("sofa_002.glb", this._scene, this._atom, {
                 position: new BABYLON.Vector3(5, 0, -4),
                 rotation: new BABYLON.Vector3(0, Math.PI * 0.5, 0),
             });

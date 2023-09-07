@@ -1,5 +1,6 @@
 import {
     AbstractMesh,
+    Mesh,
     MeshBuilder,
     PhysicsAggregate,
     PhysicsShapeType,
@@ -7,6 +8,7 @@ import {
     SceneLoader,
     Vector3,
 } from "@babylonjs/core";
+import Atom from "./Atoms/Atom";
 
 interface FurnitureOptions {
     position?: Vector3;
@@ -18,6 +20,7 @@ class Furniture {
     private _scene: Scene;
     private _root!: AbstractMesh;
     private _mesh!: AbstractMesh;
+    private _atom: Atom;
     private _physicsAggregate!: PhysicsAggregate;
     private _fileName: string;
     private _options: FurnitureOptions;
@@ -25,6 +28,7 @@ class Furniture {
     constructor(
         fileName: string,
         scene: Scene,
+        atom: Atom,
         options: FurnitureOptions = {
             position: Vector3.Zero(),
             rotation: Vector3.Zero(),
@@ -32,6 +36,7 @@ class Furniture {
         },
     ) {
         this._scene = scene;
+        this._atom = atom;
         this._fileName = fileName;
         this._options = options;
         this.generateMesh();
@@ -104,6 +109,9 @@ class Furniture {
         this._root.position.copyFrom(physicsMesh.position);
         this._root.position.y -= meshBB.extendSize.y;
         this._root.rotationQuaternion?.copyFrom(physicsMesh.rotationQuaternion!);
+
+        
+        this._atom.addToReflectionList(this._mesh as Mesh);
     }
 
     public get root(): AbstractMesh {
