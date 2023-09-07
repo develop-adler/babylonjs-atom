@@ -20,46 +20,34 @@ class Character {
     private _animations: {
         [key: string]: AnimationGroup;
     } = {};
-    private _capsuleMesh: Mesh;
-    private _physicsAggregate: PhysicsAggregate;
+    private _capsuleMesh!: Mesh;
+    private _physicsAggregate!: PhysicsAggregate;
 
-    private static readonly CAPSULE_HEIGHT = 2.5;
-    private static readonly CAPSULE_RADIUS = 0.55;
+    private static readonly CAPSULE_HEIGHT = 2.6;
+    private static readonly CAPSULE_RADIUS = 0.5;
 
     constructor(scene: Scene) {
         this._scene = scene;
+        this.generateCollision();
+    }
 
-        // create capsule physics body for character
-        this._capsuleMesh = MeshBuilder.CreateCapsule(
-            "sphereMesh",
-            {
-                radius: Character.CAPSULE_RADIUS,
-                height: Character.CAPSULE_HEIGHT,
-                tessellation: 2,
-                subdivisions: 1,
-            },
-            this._scene,
-        );
-        this._capsuleMesh.isVisible = false;
-        this._capsuleMesh.position = new Vector3(0, Character.CAPSULE_HEIGHT * 0.5, 0);
-
-        const physicsAggregate = new PhysicsAggregate(
-            this._capsuleMesh,
-            PhysicsShapeType.CAPSULE,
-            { mass: 20, restitution: 0.01 },
-            this._scene,
-        );
-
-        this._physicsAggregate = physicsAggregate;
-        this._physicsAggregate.body.setMotionType(PhysicsMotionType.DYNAMIC);
-
-        // lock rotation by disabling intertia
-        this._physicsAggregate.body.setMassProperties({
-            inertia: Vector3.Zero(),
-        });
-
-        // prevent sliding around
-        this._physicsAggregate.body.setLinearDamping(50);
+    public get scene(): Scene {
+        return this._scene;
+    }
+    public get root(): AbstractMesh {
+        return this._root;
+    }
+    public get meshes(): AbstractMesh[] {
+        return this._meshes;
+    }
+    public get animations(): { [key: string]: AnimationGroup } {
+        return this._animations;
+    }
+    public get physicsAggregate(): PhysicsAggregate {
+        return this._physicsAggregate;
+    }
+    public get physicsBody(): PhysicsBody {
+        return this._physicsAggregate.body;
     }
 
     public async init(): Promise<void> {
@@ -110,23 +98,38 @@ class Character {
         });
     }
 
-    public get scene(): Scene {
-        return this._scene;
-    }
-    public get root(): AbstractMesh {
-        return this._root;
-    }
-    public get meshes(): AbstractMesh[] {
-        return this._meshes;
-    }
-    public get animations(): { [key: string]: AnimationGroup } {
-        return this._animations;
-    }
-    public get physicsAggregate(): PhysicsAggregate {
-        return this._physicsAggregate;
-    }
-    public get physicsBody(): PhysicsBody {
-        return this._physicsAggregate.body;
+    private generateCollision(): void {
+        // create capsule physics body for character
+        this._capsuleMesh = MeshBuilder.CreateCapsule(
+            "capsuleMesh",
+            {
+                radius: Character.CAPSULE_RADIUS,
+                height: Character.CAPSULE_HEIGHT,
+                tessellation: 2,
+                subdivisions: 1,
+            },
+            this._scene,
+        );
+        this._capsuleMesh.isVisible = false;
+        this._capsuleMesh.position = new Vector3(0, Character.CAPSULE_HEIGHT * 0.5, 0);
+
+        const physicsAggregate = new PhysicsAggregate(
+            this._capsuleMesh,
+            PhysicsShapeType.CAPSULE,
+            { mass: 20, restitution: 0.01 },
+            this._scene,
+        );
+
+        this._physicsAggregate = physicsAggregate;
+        this._physicsAggregate.body.setMotionType(PhysicsMotionType.DYNAMIC);
+
+        // lock rotation by disabling intertia
+        this._physicsAggregate.body.setMassProperties({
+            inertia: Vector3.Zero(),
+        });
+
+        // prevent sliding around
+        this._physicsAggregate.body.setLinearDamping(50);
     }
 
     public show(): void {
