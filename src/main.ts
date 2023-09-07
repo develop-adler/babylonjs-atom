@@ -92,28 +92,37 @@ class App {
         BABYLON.DefaultLoadingScreen.prototype.displayLoadingUI = () => {
             if (document.getElementById("customLoadingScreenDiv")) {
                 // Do not add a loading screen if there is already one
-                document.getElementById("customLoadingScreenDiv")!.style.display = "initial";
+                document.getElementById("customLoadingScreenDiv")!.style.display =
+                    "initial";
                 return;
             }
             const loadingDiv = document.createElement("div");
             loadingDiv.id = "customLoadingScreenDiv";
-            const customLoadingScreenCss = document.createElement('style');
+            const customLoadingScreenCss = document.createElement("style");
             customLoadingScreenCss.innerHTML = `
                 #customLoadingScreenDiv {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
                     width: 100vw;
                     height: 100vh;
                     background: #1d1d1d;
+                    padding: 0;
+                    border: none;
+                    overflow: hidden;
                     z-index: 1000;
                 }
             `;
-            document.getElementsByTagName('head')[0].appendChild(customLoadingScreenCss);
+            document
+                .getElementsByTagName("head")[0]
+                .appendChild(customLoadingScreenCss);
             document.body.appendChild(loadingDiv);
 
             const loadingGif = document.createElement("img");
             loadingGif.id = "customLoadingScreenGif";
             loadingGif.src = "/loading.gif";
             loadingGif.alt = "Loading...";
-            const customLoadingScreenGifCss = document.createElement('style');
+            const customLoadingScreenGifCss = document.createElement("style");
             customLoadingScreenGifCss.innerHTML = `
                 #customLoadingScreenGif {
                     position: absolute;
@@ -126,14 +135,16 @@ class App {
                     pointer-events: none;
                 }
             `;
-            document.getElementsByTagName('head')[0].appendChild(customLoadingScreenGifCss);
+            document
+                .getElementsByTagName("head")[0]
+                .appendChild(customLoadingScreenGifCss);
 
             loadingDiv.appendChild(loadingGif);
         };
 
         BABYLON.DefaultLoadingScreen.prototype.hideLoadingUI = () => {
             document.getElementById("customLoadingScreenDiv")!.style.display = "none";
-        }
+        };
     }
 
     private async initScene(): Promise<void> {
@@ -273,8 +284,8 @@ class App {
 
                         if (!this._characterController) {
                             this._characterController = new CharacterController(
-                                this._character!.root as BABYLON.Mesh,
-                                this._character!.physicsBody as BABYLON.PhysicsBody,
+                                this._character.root as BABYLON.Mesh,
+                                this._character.physicsBody,
                                 this._camera as BABYLON.ArcRotateCamera,
                                 this._scene,
                                 this._joystick,
