@@ -26,7 +26,7 @@ class Character {
     private _physicsAggregate!: PhysicsAggregate;
 
     private static readonly CAPSULE_HEIGHT = 1.75;
-    private static readonly CAPSULE_RADIUS = 0.5;
+    private static readonly CAPSULE_RADIUS = 0.3;
 
     constructor(scene: Scene, atom: Atom) {
         this._scene = scene;
