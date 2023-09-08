@@ -183,7 +183,7 @@ class App {
             this._scene,
         );
 
-        this._camera.position = new BABYLON.Vector3(0, 3, -6);
+        this._camera.position = new BABYLON.Vector3(0, 3, -3.5);
 
         // This attaches the camera to the canvas
         this._camera.attachControl(this._canvas, true);
