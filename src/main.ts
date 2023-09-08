@@ -31,7 +31,7 @@ class App {
     private _joystick: Joystick;
     // private appState: 0 | 1 | 2 = 1;
 
-    private isThirdperson: boolean = false;
+    private _isThirdperson: boolean = false;
 
     constructor() {
         new LoadingUI();
@@ -167,11 +167,11 @@ class App {
         this._camera.keysDown.push(83); // S
         this._camera.keysRight.push(68); // D
 
-        this.isThirdperson = false;
+        this._isThirdperson = false;
     }
 
     private initThirdPersonController(): void {
-        if (this.isThirdperson) return;
+        if (this._isThirdperson) return;
         this.resetCamera();
 
         this._camera = new BABYLON.ArcRotateCamera(
@@ -210,12 +210,67 @@ class App {
         // disable panning
         this._camera.panningSensibility = 0;
 
-        this.isThirdperson = true;
+        this._isThirdperson = true;
+    }
+
+    private setFirstperson(pointerLock: boolean = false): void {
+        // switch to first person controller (without pointer lock) by pressing 2
+        this.stopCharacterController();
+        this._character?.hide();
+        this.initFirstPersonController(pointerLock);
+    }
+
+    private setThirdperson(): void {
+        if (this._isThirdperson) return;
+        // switch to third person controller by pressing 3
+        this.initThirdPersonController();
+
+        if (!this._character) {
+            this.initCharacterAsync().then(() => {
+                if (!this._characterController) {
+                    this._characterController = new CharacterController(
+                        this._character.root as BABYLON.Mesh,
+                        this._character.physicsBody,
+                        this._camera as BABYLON.ArcRotateCamera,
+                        this._scene,
+                        this._joystick,
+                    );
+                } else {
+                    this._characterController.start();
+                }
+            });
+        } else {
+            this._character.show();
+
+            if (!this._characterController) {
+                this._characterController = new CharacterController(
+                    this._character.root as BABYLON.Mesh,
+                    this._character.physicsBody,
+                    this._camera as BABYLON.ArcRotateCamera,
+                    this._scene,
+                    this._joystick,
+                );
+            } else {
+                this._characterController.start();
+            }
+        }
+
+        if (!this._characterController) {
+            this._characterController = new CharacterController(
+                this._character.root as BABYLON.Mesh,
+                this._character.physicsBody,
+                this._camera as BABYLON.ArcRotateCamera,
+                this._scene,
+                this._joystick,
+            );
+        } else {
+            this._characterController.start();
+        }
     }
 
     private initInputControls(): void {
         // Keyboard input
-        this._scene.onKeyboardObservable.add(async kbInfo => {
+        this._scene.onKeyboardObservable.add(kbInfo => {
             if (kbInfo.type === BABYLON.KeyboardEventTypes.KEYDOWN) {
                 switch (kbInfo.event.key.toLowerCase().trim()) {
                     case "i":
@@ -227,38 +282,47 @@ class App {
                         break;
                     case "1":
                         // switch to first person controller (with pointer lock) by pressing 1
-                        this.stopCharacterController();
-                        this._character?.hide();
-                        this.initFirstPersonController(true);
+                        this.setFirstperson(true);
                         break;
                     case "2":
                         // switch to first person controller (without pointer lock) by pressing 2
-                        this.stopCharacterController();
-                        this._character?.hide();
-                        this.initFirstPersonController(false);
+                        this.setFirstperson(false);
                         break;
                     case "3":
-                        if (this.isThirdperson) return;
+                        if (this._isThirdperson) return;
                         // switch to third person controller by pressing 3
                         this.initThirdPersonController();
 
                         if (!this._character) {
-                            await this.initCharacterAsync();
+                            this.initCharacterAsync().then(() => {
+                                if (!this._characterController) {
+                                    this._characterController = new CharacterController(
+                                        this._character.root as BABYLON.Mesh,
+                                        this._character.physicsBody,
+                                        this._camera as BABYLON.ArcRotateCamera,
+                                        this._scene,
+                                        this._joystick,
+                                    );
+                                } else {
+                                    this._characterController.start();
+                                }
+                            });
                         } else {
                             this._character.show();
+
+                            if (!this._characterController) {
+                                this._characterController = new CharacterController(
+                                    this._character.root as BABYLON.Mesh,
+                                    this._character.physicsBody,
+                                    this._camera as BABYLON.ArcRotateCamera,
+                                    this._scene,
+                                    this._joystick,
+                                );
+                            } else {
+                                this._characterController.start();
+                            }
                         }
 
-                        if (!this._characterController) {
-                            this._characterController = new CharacterController(
-                                this._character.root as BABYLON.Mesh,
-                                this._character.physicsBody,
-                                this._camera as BABYLON.ArcRotateCamera,
-                                this._scene,
-                                this._joystick,
-                            );
-                        } else {
-                            this._characterController.start();
-                        }
                         break;
                 }
             }
