@@ -289,40 +289,7 @@ class App {
                         this.setFirstperson(false);
                         break;
                     case "3":
-                        if (this._isThirdperson) return;
-                        // switch to third person controller by pressing 3
-                        this.initThirdPersonController();
-
-                        if (!this._character) {
-                            this.initCharacterAsync().then(() => {
-                                if (!this._characterController) {
-                                    this._characterController = new CharacterController(
-                                        this._character.root as BABYLON.Mesh,
-                                        this._character.physicsBody,
-                                        this._camera as BABYLON.ArcRotateCamera,
-                                        this._scene,
-                                        this._joystick,
-                                    );
-                                } else {
-                                    this._characterController.start();
-                                }
-                            });
-                        } else {
-                            this._character.show();
-
-                            if (!this._characterController) {
-                                this._characterController = new CharacterController(
-                                    this._character.root as BABYLON.Mesh,
-                                    this._character.physicsBody,
-                                    this._camera as BABYLON.ArcRotateCamera,
-                                    this._scene,
-                                    this._joystick,
-                                );
-                            } else {
-                                this._characterController.start();
-                            }
-                        }
-
+                        this.setThirdperson();
                         break;
                 }
             }
