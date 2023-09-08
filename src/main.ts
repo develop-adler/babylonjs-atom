@@ -14,6 +14,7 @@ import ClassicRoom from "./components/Atoms/ClassicRoom";
 import ModernRoom from "./components/Atoms/ModernRoom";
 import Furniture from "./components/Furniture";
 import LoadingUI from "./components/LoadingUI";
+import OverlayElements from "./components/OverlayElements";
 
 // using CDN in index.html
 declare function HavokPhysics(): any;
@@ -105,9 +106,10 @@ class App {
             // remove event listener
             this._scene.onDispose = () => {
                 window.removeEventListener("resize", handleResize);
-
                 this.dispose();
             };
+
+            new OverlayElements();
         });
     }
 
