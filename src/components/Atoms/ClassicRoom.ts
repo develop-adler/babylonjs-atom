@@ -32,6 +32,8 @@ class ClassicRoom extends Atom {
                 new Picture("/textures/angry-frog.jpg", scene, this, "rightFront");
                 new Picture("/textures/1234.png", scene, this, "leftBack");
                 new Picture("/textures/hyundai.png", scene, this, "rightBack");
+
+                this.addMeshesToReflectionList(this._meshes as Mesh[]);
             },
         );
     }
