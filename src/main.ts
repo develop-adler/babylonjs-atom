@@ -56,6 +56,27 @@ class App {
         this.initScene().then(async () => {
             this._atom = this.createAtom("classic");
 
+            new Furniture("table_001.glb", this._scene, this._atom, {
+                position: new BABYLON.Vector3(3, 0, 2),
+                type: "cylinder",
+            });
+            new Furniture("table_002.glb", this._scene, this._atom, {
+                position: new BABYLON.Vector3(5, 0, 3),
+                type: "cylinder",
+            });
+            new Furniture("table_003.glb", this._scene, this._atom, {
+                position: new BABYLON.Vector3(0, 0, -1.25),
+            });
+
+            new Furniture("sofa_001.glb", this._scene, this._atom, {
+                position: new BABYLON.Vector3(0, 0, -3),
+                rotation: new BABYLON.Vector3(0, Math.PI, 0),
+            });
+            new Furniture("sofa_002.glb", this._scene, this._atom, {
+                position: new BABYLON.Vector3(6.8, 0, -4),
+                rotation: new BABYLON.Vector3(0, Math.PI * 0.5, 0),
+            });
+
             // thirperson controller mode as default mode
             this.initThirdPersonController();
             await this.initCharacterAsync();
@@ -70,27 +91,6 @@ class App {
             this.createLight();
 
             this.initInputControls();
-
-            new Furniture("table_001.glb", this._scene, this._atom, {
-                position: new BABYLON.Vector3(3, 0, 2),
-                type: "cylinder",
-            });
-            new Furniture("table_002.glb", this._scene, this._atom, {
-                position: new BABYLON.Vector3(5, 0, 3),
-                type: "cylinder",
-            });
-            new Furniture("table_003.glb", this._scene, this._atom, {
-                position: new BABYLON.Vector3(1, 0, 4),
-            });
-
-            new Furniture("sofa_001.glb", this._scene, this._atom, {
-                position: new BABYLON.Vector3(0, 0, -4),
-                rotation: new BABYLON.Vector3(0, Math.PI, 0),
-            });
-            new Furniture("sofa_002.glb", this._scene, this._atom, {
-                position: new BABYLON.Vector3(5, 0, -4),
-                rotation: new BABYLON.Vector3(0, Math.PI * 0.5, 0),
-            });
 
             // hide loading screen
             this._engine.hideLoadingUI();
