@@ -1,14 +1,11 @@
 import {
     Color3,
-    FresnelParameters,
-    Matrix,
     Mesh,
     MeshBuilder,
     MirrorTexture,
     PhysicsAggregate,
     PhysicsShapeType,
     Plane,
-    ReflectionProbe,
     Scene,
     StandardMaterial,
     Vector3,
@@ -29,92 +26,9 @@ abstract class Atom {
     constructor(scene: Scene, dimensions: AtomDimensions, reflections?: Mesh[]) {
         this._scene = scene;
         this._dimensions = dimensions;
-        this._reflectionList = reflections || [];
+        this._reflectionList = reflections ?? [];
 
-        const generateSatelliteMaterial = (
-            mesh: Mesh,
-            color: Color3,
-            reflectionList: Mesh[],
-        ) => {
-            const material = new StandardMaterial("satelliteMat" + mesh.name, scene);
-            material.diffuseColor = color;
-
-            const probe = new ReflectionProbe(
-                "satelliteProbe" + mesh.name,
-                512,
-                scene,
-            );
-            for (let index = 0; index < reflectionList.length; index++) {
-                probe.renderList?.push(reflectionList[index]);
-            }
-
-            material.reflectionTexture = probe.cubeTexture;
-
-            material.reflectionFresnelParameters = new FresnelParameters();
-            material.reflectionFresnelParameters.bias = 0.02;
-
-            mesh.material = material;
-            probe.attachToMesh(mesh);
-        };
-
-        const blueSphere = MeshBuilder.CreateSphere(
-            "blueSphere",
-            {
-                diameter: 0.5,
-            },
-            scene,
-        );
-        blueSphere.setPivotMatrix(Matrix.Translation(-1, 2, 0), false);
-
-        const redSphere = MeshBuilder.CreateSphere(
-            "redSphere",
-            {
-                diameter: 0.5,
-            },
-            scene,
-        );
-        redSphere.setPivotMatrix(Matrix.Translation(1, 1, 0), false);
-
-        const greenBox = MeshBuilder.CreateBox(
-            "greenBox",
-            {
-                width: 0.5,
-                height: 0.5,
-                depth: 0.5,
-            },
-            scene,
-        );
-        greenBox.setPivotMatrix(Matrix.Translation(0, 1.5, 1), false);
-
-        generateSatelliteMaterial(blueSphere, Color3.Blue(), [
-            redSphere,
-            greenBox,
-            this._ground,
-        ]);
-        generateSatelliteMaterial(redSphere, Color3.Red(), [
-            blueSphere,
-            greenBox,
-            this._ground,
-        ]);
-        generateSatelliteMaterial(greenBox, Color3.Green(), [
-            blueSphere,
-            redSphere,
-            this._ground,
-        ]);
-
-        // Animations
-        scene.registerBeforeRender(() => {
-            blueSphere.rotation.y += 0.01;
-            greenBox.rotation.y -= 0.01;
-            redSphere.rotation.y += 0.01;
-        });
-
-        this.generateCollisions([
-            ...this._reflectionList,
-            blueSphere,
-            redSphere,
-            greenBox,
-        ]);
+        this.generateCollisions([...this._reflectionList]);
     }
     public get dimensions(): AtomDimensions {
         return this._dimensions;
