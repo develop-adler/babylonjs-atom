@@ -355,7 +355,7 @@ class App {
         dirLight.shadowMinZ = 10;
         dirLight.shadowMaxZ = 60;
 
-        this.createLightGizmo(dirLight);
+        // this.createLightGizmo(dirLight);
 
         // Shadows
         const shadowGenerator = new BABYLON.ShadowGenerator(2048, dirLight);
@@ -376,17 +376,17 @@ class App {
         // TODO: add atom shadows
     }
 
-    private createLightGizmo(customLight: BABYLON.Light): void {
-        const lightGizmo = new BABYLON.LightGizmo();
-        lightGizmo.scaleRatio = 2;
-        lightGizmo.light = customLight;
+    // private createLightGizmo(customLight: BABYLON.Light): void {
+    //     const lightGizmo = new BABYLON.LightGizmo();
+    //     lightGizmo.scaleRatio = 2;
+    //     lightGizmo.light = customLight;
 
-        const gizmoManager = new BABYLON.GizmoManager(this._scene);
-        gizmoManager.positionGizmoEnabled = true;
-        gizmoManager.rotationGizmoEnabled = true;
-        gizmoManager.usePointerToAttachGizmos = false;
-        gizmoManager.attachToMesh(lightGizmo.attachedMesh);
-    }
+    //     const gizmoManager = new BABYLON.GizmoManager(this._scene);
+    //     gizmoManager.positionGizmoEnabled = true;
+    //     gizmoManager.rotationGizmoEnabled = true;
+    //     gizmoManager.usePointerToAttachGizmos = false;
+    //     gizmoManager.attachToMesh(lightGizmo.attachedMesh);
+    // }
 
     private resetCamera(): void {
         this._scene.removeCamera(this._camera);
