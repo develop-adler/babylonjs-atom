@@ -43,12 +43,15 @@ class OverlayElements {
                 // border-radius: 1.5rem;
                 border: none;
                 padding: 0;
+                scale: 1;
             
-                @media (max-width: 600px) {
+                @media (max-width: 768px) {
                     left: auto;
-                    right: 3rem;
-                    bottom: 3rem;
+                    right: 0.1rem;
+                    bottom: 0.1rem;
+                    scale: 0.8;
                 }
+                transition: all 0.4s ease-in-out;
             }
 
             input[type=checkbox]{

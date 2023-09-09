@@ -12,15 +12,28 @@ class Joystick {
     constructor() {
         const joystickContainer = document.createElement("div");
         joystickContainer.id = "joystick";
-        joystickContainer.style.position = "absolute";
-        joystickContainer.style.bottom = "15%";
-        joystickContainer.style.left = "15%";
-        joystickContainer.style.zIndex = "10";
+        const joystickCSS = document.createElement("style");
+        joystickCSS.innerHTML = `
+            #joystick {
+                position: absolute;
+                bottom: 15%;
+                left: 15%;
+                z-index: 10;
+                scale: 1.5;
+
+                @media screen and (max-width: 768px) {
+                    left: 25%;
+                    scale: 1.25;
+                }
+                transition: all 0.4s ease-in-out;
+            }
+        `;
+        document.getElementsByTagName("head")[0].appendChild(joystickCSS);
         document.getElementById("app")!.appendChild(joystickContainer);
 
         this.manager = nipplejs.create({
             zone: document.querySelector("#joystick") as HTMLElement,
-            size: 100 * (window.innerHeight / 720),
+            // size: 100 * (window.innerHeight / 720),
             mode: "static",
             position: { top: "50%", left: "50%" },
         });
