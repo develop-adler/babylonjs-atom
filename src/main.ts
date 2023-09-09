@@ -12,7 +12,7 @@ import Joystick from "./components/Joystick";
 import Atom from "./components/Atoms/Atom";
 import ClassicRoom from "./components/Atoms/ClassicRoom";
 import ModernRoom from "./components/Atoms/ModernRoom";
-import Furniture from "./components/Furniture";
+import Furniture from "./components/AtomElements/Furniture";
 import LoadingUI from "./components/LoadingUI";
 import OverlayElements from "./components/OverlayElements";
 

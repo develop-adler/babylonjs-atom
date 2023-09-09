@@ -8,7 +8,7 @@ import {
     SceneLoader,
     Vector3,
 } from "@babylonjs/core";
-import Atom from "./Atoms/Atom";
+import Atom from "../Atoms/Atom";
 
 interface FurnitureOptions {
     position?: Vector3;
