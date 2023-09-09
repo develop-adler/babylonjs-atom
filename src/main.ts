@@ -100,7 +100,16 @@ class App {
             });
 
             // the canvas/window resize event handler
-            const handleResize = () => this._engine.resize();
+            const handleResize = () => {
+                this._engine.resize();
+
+                // widen camera FOV on narrows screens
+                if (window.innerWidth < window.innerHeight) {
+                    this._camera.fov = 1;
+                } else {
+                    this._camera.fov = 0.8;
+                }
+            }
             window.addEventListener("resize", handleResize);
 
             // remove event listener
@@ -188,9 +197,17 @@ class App {
         // This attaches the camera to the canvas
         this._camera.attachControl(this._canvas, true);
 
+        // widen camera FOV on narrows screens
+        if (window.innerWidth < window.innerHeight) {
+            this._camera.fov = 1;
+        } else {
+            this._camera.fov = 0.8;
+        }
+
         // prevent clipping
         this._camera.minZ = 0.1;
 
+        // don't zoom in or out as much when scrolling mouse wheel
         this._camera.wheelPrecision = 100;
 
         // camera min distance and max distance
