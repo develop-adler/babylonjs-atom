@@ -238,7 +238,7 @@ abstract class Atom {
         );
     }
 
-    public addToReflectionList(mesh: Mesh): void {
+    public addMeshToReflectionList(mesh: Mesh): void {
         this._reflectionList.push(mesh);
         const currentReflectionList = (
             (this._ground.material as StandardMaterial)
@@ -249,6 +249,19 @@ abstract class Atom {
             (this._ground.material as StandardMaterial)
                 .reflectionTexture as MirrorTexture
         ).renderList = [...currentReflectionList, mesh];
+    }
+
+    public addMeshesToReflectionList(meshes: Mesh[]): void {
+        this._reflectionList.push(...meshes);
+        const currentReflectionList = (
+            (this._ground.material as StandardMaterial)
+                .reflectionTexture as MirrorTexture
+        ).renderList as Mesh[];
+
+        (
+            (this._ground.material as StandardMaterial)
+                .reflectionTexture as MirrorTexture
+        ).renderList = [...currentReflectionList, ...meshes];
     }
 }
 

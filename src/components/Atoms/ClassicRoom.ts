@@ -1,9 +1,4 @@
-import {
-    AbstractMesh,
-    Mesh,
-    Scene,
-    SceneLoader,
-} from "@babylonjs/core";
+import { AbstractMesh, Mesh, Scene, SceneLoader } from "@babylonjs/core";
 import Atom from "./Atom";
 import Picture from "../AtomElements/Picture";
 
@@ -12,11 +7,15 @@ class ClassicRoom extends Atom {
     private _meshes: AbstractMesh[] = [];
 
     constructor(scene: Scene, reflectionList?: Mesh[]) {
-        super(scene, {
-            width: 2.5 * 1.5,
-            height: 2.5 * 1.5,
-            depth: 2.5 * 1.5,
-        }, reflectionList);
+        super(
+            scene,
+            {
+                width: 2.5 * 1.5,
+                height: 2.5 * 1.5,
+                depth: 2.5 * 1.5,
+            },
+            reflectionList,
+        );
 
         SceneLoader.ImportMesh(
             "",

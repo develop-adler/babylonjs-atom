@@ -85,7 +85,7 @@ class Character {
         );
 
         this._meshes.forEach((mesh) => {
-            this._atom.addToReflectionList(mesh as Mesh);
+            this._atom.addMeshToReflectionList(mesh as Mesh);
         });
 
         this._scene.registerBeforeRender(() => {

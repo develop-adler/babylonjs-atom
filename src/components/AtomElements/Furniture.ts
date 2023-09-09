@@ -110,8 +110,7 @@ class Furniture {
         this._root.position.y -= meshBB.extendSize.y;
         this._root.rotationQuaternion?.copyFrom(physicsMesh.rotationQuaternion!);
 
-        
-        this._atom.addToReflectionList(this._mesh as Mesh);
+        this._atom.addMeshToReflectionList(this._mesh as Mesh);
     }
 
     public get root(): AbstractMesh {

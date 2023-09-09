@@ -44,6 +44,12 @@ class Picture {
     public get atom(): Atom {
         return this._atom;
     }
+    public get picture(): Mesh {
+        return this._pictureMesh;
+    }
+    public get pictureFrame(): Mesh {
+        return this._pictureFrameMesh;
+    }
 
     private createPicture(): void {
         const image = new Image();
@@ -295,6 +301,7 @@ class Picture {
                     );
                     break;
             }
+            this._atom.addMeshesToReflectionList([this._pictureFrameMesh, this._pictureMesh]);
         };
     }
 }
