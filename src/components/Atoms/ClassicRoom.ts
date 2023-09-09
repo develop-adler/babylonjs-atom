@@ -24,8 +24,9 @@ class ClassicRoom extends Atom {
             scene,
             result => {
                 this._root = result[0];
-                this._root.scaling.scaleInPlace(1.5);
                 this._meshes = result.slice(1);
+
+                this._root.scaling.scaleInPlace(1.5);
 
                 new Picture("/textures/baby-sonic-2.png", scene, this, "front");
                 new Picture("/textures/bonk-shiba.jpg", scene, this, "leftFront");
