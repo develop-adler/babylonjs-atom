@@ -79,14 +79,15 @@ class App {
 
             // thirperson controller mode as default mode
             this.initThirdPersonController();
-            await this.initCharacterAsync();
-            this._characterController = new CharacterController(
-                this._character.root as BABYLON.Mesh,
-                this._character.physicsBody,
-                this._camera as BABYLON.ArcRotateCamera,
-                this._scene,
-                this._joystick,
-            );
+            await this.initCharacterAsync().then(() => {
+                this._characterController = new CharacterController(
+                    this._character.root as BABYLON.Mesh,
+                    this._character.physicsBody,
+                    this._camera as BABYLON.ArcRotateCamera,
+                    this._scene,
+                    this._joystick,
+                );
+            });
 
             this.createLight();
 
@@ -412,13 +413,13 @@ class App {
     // private initCharacter(): void {
     //     if (this._character) return;
     //     this._character = new Character(this._scene);
-    //     this._character.init();
+    //     this._character.loadModel();
     // }
 
     private async initCharacterAsync(): Promise<void> {
         if (this._character) return;
         this._character = new Character(this._scene, this._atom);
-        await this._character.init();
+        await this._character.loadModel();
     }
 
     private disposeCharacter(): void {

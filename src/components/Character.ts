@@ -53,7 +53,7 @@ class Character {
         return this._physicsAggregate.body;
     }
 
-    public async init(): Promise<void> {
+    public async loadModel(): Promise<void> {
         const { meshes, animationGroups } = await SceneLoader.ImportMeshAsync(
             "",
             "/models/",
@@ -126,6 +126,14 @@ class Character {
 
         // prevent sliding around
         this._physicsAggregate.body.setLinearDamping(50);
+    }
+
+    public setPosition(position: Vector3): void {
+        this.physicsAggregate.body.disablePreStep = false;
+        this._capsuleMesh.position = position;
+        this._scene.onAfterPhysicsObservable.addOnce(() => {
+            this.physicsAggregate.body.disablePreStep = true;
+        });
     }
 
     public show(): void {
