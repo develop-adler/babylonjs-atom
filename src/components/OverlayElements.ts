@@ -1,20 +1,17 @@
-import { Mesh, Scene, SceneLoader, ShadowGenerator } from "@babylonjs/core";
-import Atom from "./Atoms/Atom";
+import { Mesh, MeshBuilder, PhysicsAggregate, PhysicsShapeType, SceneLoader, Vector3 } from "@babylonjs/core";
+import { SCENE_SETTINGS } from "../utils/global";
+import Core from "./Core";
 
 class OverlayElements {
-    private _scene: Scene;
-    private _atom: Atom;
-    private _shadowGenerators: ShadowGenerator[];
+    private _core: Core;
 
     private _appElement: HTMLElement;
     private _overlayContainerElement!: HTMLElement;
     private _controlSwitchElement!: HTMLElement;
 
-    constructor(scene: Scene, atom: Atom, shadowGenerators: ShadowGenerator[]) {
+    constructor(core: Core) {
+        this._core = core;
         this._appElement = document.getElementById("app")!;
-        this._atom = atom;
-        this._scene = scene;
-        this._shadowGenerators = shadowGenerators;
 
         this.createOverlayContainer();
         this.createControlSwitchElement();
@@ -26,26 +23,28 @@ class OverlayElements {
             "",
             "",
             file,
-            this._scene,
+            this._core.scene,
             (meshes, particleSystems, skeletons, animationGroups) => { //onSuccess
                 console.log(meshes);
                 console.log(particleSystems);
                 console.log(skeletons);
                 console.log(animationGroups);
 
-                if (this._shadowGenerators.length) {
-                    this._shadowGenerators?.forEach(generator => {
+                console.log(file);
+
+                // enable shadows and collisions
+                if (this._core.shadowGenerators.length) {
+                    this._core.shadowGenerators?.forEach(generator => {
                         meshes.forEach(mesh => {
                             mesh.receiveShadows = true;
+                            mesh.checkCollisions = true;
                             generator.addShadowCaster(mesh);
                         });
                     });
                 }
 
-                console.log(this._atom);
-
                 // add meshes to reflection list
-                this._atom.addMeshesToReflectionList(meshes as Mesh[]);
+                this._core.atom.addMeshesToReflectionList(meshes as Mesh[]);
             },
             null, // onProgress
             (_, message, exception) => { // onError
@@ -219,7 +218,11 @@ class OverlayElements {
     }
 
     private switchControlMode(): void {
-        console.log('called switch');
+        if (SCENE_SETTINGS.isThirdperson) {
+            this._core.setFirstperson();
+        } else {
+            this._core.setThirdperson();
+        }
     }
 }
 
