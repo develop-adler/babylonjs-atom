@@ -1,12 +1,12 @@
-import { AbstractMesh, Mesh, Scene, SceneLoader, ShadowGenerator } from "@babylonjs/core";
+import { AbstractMesh, Mesh, Scene, SceneLoader } from "@babylonjs/core";
 import Atom from "./Atom";
 
 class ModernRoom extends Atom {
     private _root: AbstractMesh = null!;
     private _meshes: AbstractMesh[] = [];
-    private _shadowGenerators: ShadowGenerator[] = [];
+    // private _shadowGenerators: ShadowGenerator[] = [];
 
-    constructor(scene: Scene, reflectionList?: Mesh[], shadowGenerators?: ShadowGenerator[]) {
+    constructor(scene: Scene, reflectionList?: Mesh[]) {
         super(
             scene,
             {
@@ -16,7 +16,7 @@ class ModernRoom extends Atom {
             },
             reflectionList,
         );
-        this._shadowGenerators = shadowGenerators ?? [];
+        // this._shadowGenerators = shadowGenerators ?? [];
 
         SceneLoader.ImportMesh(
             "",
