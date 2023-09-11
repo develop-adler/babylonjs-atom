@@ -57,7 +57,7 @@ class App {
         this.initScene().then(async () => {
             this.createLight();
 
-            this._atom = this.createAtom("classic", this._shadowGenerators);
+            this._atom = this.createAtom("classic");
 
             new Furniture("table_001.glb", this._scene, this._atom, this._shadowGenerators, {
                 position: new BABYLON.Vector3(3, 0, 2),
@@ -406,12 +406,12 @@ class App {
         this._scene.onPointerDown = undefined;
     }
 
-    private createAtom(type: string, shadowGenerators: BABYLON.ShadowGenerator[]): Atom {
+    private createAtom(type: string): Atom {
         switch (type) {
             case "classic":
-                return new ClassicRoom(this._scene, [], shadowGenerators);
+                return new ClassicRoom(this._scene);
             case "modern":
-                return new ModernRoom(this._scene, [], shadowGenerators);
+                return new ModernRoom(this._scene);
         }
 
         return undefined!;
