@@ -10,6 +10,7 @@ import {
     PhysicsShapeType,
     Scene,
     SceneLoader,
+    ShadowGenerator,
     Vector3,
 } from "@babylonjs/core";
 import Atom from "./Atoms/Atom";
@@ -24,13 +25,15 @@ class Character {
     } = {};
     private _capsuleMesh!: Mesh;
     private _physicsAggregate!: PhysicsAggregate;
+    private _shadowGenerators: ShadowGenerator[] = [];
 
     private static readonly CAPSULE_HEIGHT = 1.75;
     private static readonly CAPSULE_RADIUS = 0.3;
 
-    constructor(scene: Scene, atom: Atom) {
+    constructor(scene: Scene, atom: Atom, shadowGenerators?: ShadowGenerator[]) {
         this._scene = scene;
         this._atom = atom;
+        this._shadowGenerators = shadowGenerators ?? [];
         this.generateCollision();
     }
 
@@ -87,6 +90,15 @@ class Character {
         this._meshes.forEach((mesh) => {
             this._atom.addMeshToReflectionList(mesh as Mesh);
         });
+
+        if (this._shadowGenerators.length) {
+            this._shadowGenerators?.forEach(generator => {
+                this._meshes.forEach(mesh => {
+                    mesh.receiveShadows = true;
+                    generator.addShadowCaster(mesh);
+                });
+            });
+        }
 
         this._scene.registerBeforeRender(() => {
             this._root.position.copyFrom(this._capsuleMesh.position);

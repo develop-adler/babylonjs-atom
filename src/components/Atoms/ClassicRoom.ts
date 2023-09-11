@@ -1,12 +1,13 @@
-import { AbstractMesh, Mesh, Scene, SceneLoader } from "@babylonjs/core";
+import { AbstractMesh, Mesh, Scene, SceneLoader, ShadowGenerator } from "@babylonjs/core";
 import Atom from "./Atom";
 import Picture from "../AtomElements/Picture";
 
 class ClassicRoom extends Atom {
     private _root: AbstractMesh = null!;
     private _meshes: AbstractMesh[] = [];
+    private _shadowGenerators: ShadowGenerator[] = [];
 
-    constructor(scene: Scene, reflectionList?: Mesh[]) {
+    constructor(scene: Scene, reflectionList?: Mesh[], shadowGenerators?: ShadowGenerator[]) {
         super(
             scene,
             {
@@ -16,6 +17,7 @@ class ClassicRoom extends Atom {
             },
             reflectionList,
         );
+        this._shadowGenerators = shadowGenerators ?? [];
 
         SceneLoader.ImportMesh(
             "",
@@ -35,6 +37,18 @@ class ClassicRoom extends Atom {
                 new Picture("/textures/hyundai.png", scene, this, "rightBack");
 
                 this.addMeshesToReflectionList(this._meshes as Mesh[]);
+
+                this._meshes.forEach(mesh => {
+                    mesh.receiveShadows = true;
+                });
+                // if (this._shadowGenerators.length) {
+                //     this._shadowGenerators?.forEach(generator => {
+                //         this._meshes.forEach(mesh => {
+                //             mesh.receiveShadows = true;
+                //             generator.addShadowCaster(mesh);
+                //         });
+                //     });
+                // }
             },
         );
     }

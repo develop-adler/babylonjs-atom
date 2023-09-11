@@ -6,6 +6,7 @@ import {
     PhysicsShapeType,
     Scene,
     SceneLoader,
+    ShadowGenerator,
     Vector3,
 } from "@babylonjs/core";
 import Atom from "../Atoms/Atom";
@@ -17,27 +18,30 @@ interface FurnitureOptions {
 }
 
 class Furniture {
+    private _fileName: string;
     private _scene: Scene;
+    private _atom: Atom;
+    private _shadowGenerators: ShadowGenerator[] = [];
+    private _options: FurnitureOptions;
     private _root!: AbstractMesh;
     private _mesh!: AbstractMesh;
-    private _atom: Atom;
     private _physicsAggregate!: PhysicsAggregate;
-    private _fileName: string;
-    private _options: FurnitureOptions;
 
     constructor(
         fileName: string,
         scene: Scene,
         atom: Atom,
+        shadowGenerators?: ShadowGenerator[],
         options: FurnitureOptions = {
             position: Vector3.Zero(),
             rotation: Vector3.Zero(),
             type: "box",
         },
     ) {
+        this._fileName = fileName;
         this._scene = scene;
         this._atom = atom;
-        this._fileName = fileName;
+        this._shadowGenerators = shadowGenerators ?? [];
         this._options = options;
         this.generateMesh();
     }
@@ -51,6 +55,13 @@ class Furniture {
         );
         this._root = meshes[0];
         this._mesh = meshes[1];
+
+        if (this._shadowGenerators.length) {
+            this._shadowGenerators?.forEach(generator => {
+                this._mesh.receiveShadows = true;
+                generator.addShadowCaster(this._mesh);
+            });
+        }
 
         this.generateCollisions();
     }

@@ -29,6 +29,7 @@ class App {
     private _character!: Character;
     private _characterController?: CharacterController;
     private _joystick: Joystick;
+    private _shadowGenerators: BABYLON.ShadowGenerator[] = [];
     // private appState: 0 | 1 | 2 = 1;
 
     private _isThirdperson: boolean = false;
@@ -54,25 +55,27 @@ class App {
 
         // wait until scene has physics then create scene
         this.initScene().then(async () => {
-            this._atom = this.createAtom("classic");
+            this.createLight();
 
-            new Furniture("table_001.glb", this._scene, this._atom, {
+            this._atom = this.createAtom("classic", this._shadowGenerators);
+
+            new Furniture("table_001.glb", this._scene, this._atom, this._shadowGenerators, {
                 position: new BABYLON.Vector3(3, 0, 2),
                 type: "cylinder",
             });
-            new Furniture("table_002.glb", this._scene, this._atom, {
+            new Furniture("table_002.glb", this._scene, this._atom, this._shadowGenerators, {
                 position: new BABYLON.Vector3(5, 0, 3),
                 type: "cylinder",
             });
-            new Furniture("table_003.glb", this._scene, this._atom, {
+            new Furniture("table_003.glb", this._scene, this._atom, this._shadowGenerators, {
                 position: new BABYLON.Vector3(0, 0, -1.25),
             });
 
-            new Furniture("sofa_001.glb", this._scene, this._atom, {
+            new Furniture("sofa_001.glb", this._scene, this._atom, this._shadowGenerators, {
                 position: new BABYLON.Vector3(0, 0, -3),
                 rotation: new BABYLON.Vector3(0, Math.PI, 0),
             });
-            new Furniture("sofa_002.glb", this._scene, this._atom, {
+            new Furniture("sofa_002.glb", this._scene, this._atom, this._shadowGenerators, {
                 position: new BABYLON.Vector3(6.8, 0, -4),
                 rotation: new BABYLON.Vector3(0, Math.PI * 0.5, 0),
             });
@@ -88,8 +91,6 @@ class App {
                     this._joystick,
                 );
             });
-
-            this.createLight();
 
             this.initInputControls();
 
@@ -346,17 +347,28 @@ class App {
 
         const dirLight = new BABYLON.DirectionalLight(
             "dirLight",
-            new BABYLON.Vector3(4.5, -20, -5),
+            new BABYLON.Vector3(6.5, -20, -2),
             this._scene,
         );
 
-        dirLight.position = new BABYLON.Vector3(-3, 40, -5);
+        dirLight.position = new BABYLON.Vector3(3, 60, -5);
         dirLight.intensity = 1;
         dirLight.shadowEnabled = true;
         dirLight.shadowMinZ = 10;
         dirLight.shadowMaxZ = 60;
 
         // this.createLightGizmo(dirLight);
+
+        // const spotLight = new BABYLON.SpotLight(
+        //     "spotLight",
+        //     new BABYLON.Vector3(-3, 60, -5),
+        //     new BABYLON.Vector3(6.5, -20, -5),
+        //     Math.PI / 4,
+        //     1,
+        //     this._scene,
+        // );
+
+        // this.createLightGizmo(spotLight);
 
         // Shadows
         const shadowGenerator = new BABYLON.ShadowGenerator(2048, dirLight);
@@ -366,15 +378,10 @@ class App {
         shadowGenerator.usePercentageCloserFiltering = true;
         shadowGenerator.blurScale = 0.1;
 
+        this._shadowGenerators.push(shadowGenerator);
+
         // low quality for better performance
         // shadowGenerator.filteringQuality = ShadowGenerator.QUALITY_LOW;
-
-        this._character?.meshes.forEach(mesh => {
-            mesh.receiveShadows = true;
-            shadowGenerator.addShadowCaster(mesh);
-        });
-
-        // TODO: add atom shadows
     }
 
     // private createLightGizmo(customLight: BABYLON.Light): void {
@@ -399,12 +406,12 @@ class App {
         this._scene.onPointerDown = undefined;
     }
 
-    private createAtom(type: string): Atom {
+    private createAtom(type: string, shadowGenerators: BABYLON.ShadowGenerator[]): Atom {
         switch (type) {
             case "classic":
-                return new ClassicRoom(this._scene);
+                return new ClassicRoom(this._scene, [], shadowGenerators);
             case "modern":
-                return new ModernRoom(this._scene);
+                return new ModernRoom(this._scene, [], shadowGenerators);
         }
 
         return undefined!;
@@ -412,13 +419,13 @@ class App {
 
     // private initCharacter(): void {
     //     if (this._character) return;
-    //     this._character = new Character(this._scene);
+    //     this._character = new Character(this._scene, this._atom, _shadowGenerators);
     //     this._character.loadModel();
     // }
 
     private async initCharacterAsync(): Promise<void> {
         if (this._character) return;
-        this._character = new Character(this._scene, this._atom);
+        this._character = new Character(this._scene, this._atom, this._shadowGenerators);
         await this._character.loadModel();
     }
 
