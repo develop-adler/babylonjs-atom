@@ -1,12 +1,110 @@
+import { Mesh, Scene, SceneLoader, ShadowGenerator } from "@babylonjs/core";
+import Atom from "./Atoms/Atom";
+
 class OverlayElements {
+    private _scene: Scene;
+    private _atom: Atom;
+    private _shadowGenerators: ShadowGenerator[];
+
     private _appElement: HTMLElement;
     private _overlayContainerElement!: HTMLElement;
     private _controlSwitchElement!: HTMLElement;
 
-    constructor() {
+    constructor(scene: Scene, atom: Atom, shadowGenerators: ShadowGenerator[]) {
         this._appElement = document.getElementById("app")!;
+        this._atom = atom;
+        this._scene = scene;
+        this._shadowGenerators = shadowGenerators;
+
         this.createOverlayContainer();
         this.createControlSwitchElement();
+        this.createFileUploadButton();
+    }
+
+    private async loadModelFromFile(file: File): Promise<void> {
+        SceneLoader.ImportMesh(
+            "",
+            "",
+            file,
+            this._scene,
+            (meshes, particleSystems, skeletons, animationGroups) => { //onSuccess
+                console.log(meshes);
+                console.log(particleSystems);
+                console.log(skeletons);
+                console.log(animationGroups);
+
+                if (this._shadowGenerators.length) {
+                    this._shadowGenerators?.forEach(generator => {
+                        meshes.forEach(mesh => {
+                            mesh.receiveShadows = true;
+                            generator.addShadowCaster(mesh);
+                        });
+                    });
+                }
+
+                console.log(this._atom);
+
+                // add meshes to reflection list
+                this._atom.addMeshesToReflectionList(meshes as Mesh[]);
+            },
+            null, // onProgress
+            (_, message, exception) => { // onError
+                throw new Error(exception ?? `Error loading model: ${message}`);
+            }
+        );
+    }
+
+    private createFileUploadButton(): void {
+        const fileUploadInputButton = document.createElement("button");
+        fileUploadInputButton.id = "fileUploadInputButton";
+        fileUploadInputButton.innerHTML = "Upload Model";
+
+        const fileUploadInputField = document.createElement("input");
+        fileUploadInputField.id = "fileUploadInputField";
+        fileUploadInputField.type = "file";
+        fileUploadInputField.accept = ".glb, .gltf";
+        fileUploadInputField.multiple = true;
+        const css = document.createElement("style");
+        css.innerHTML = `
+            #fileUploadInputButton {
+                position: absolute;
+                top: 1rem;
+                left: 1rem;
+                pointer-events: all;
+                cursor: pointer;
+                font-size: 1.5rem;
+                color: #ffffff;
+                background-color: #FC4F91;
+                padding: 0.4rem 0.8rem;
+                border: none;
+                border-radius: 0.5rem;
+            }
+            #fileUploadInputField {
+                display: none;
+            }
+        `;
+        document.getElementsByTagName("head")[0].appendChild(css);
+
+        fileUploadInputButton.appendChild(fileUploadInputField);
+
+        fileUploadInputButton.onclick = (e: MouseEvent) => {
+            e.stopPropagation();
+            fileUploadInputField.click();
+        };
+
+        // read file
+        fileUploadInputField.onchange = async (e: Event) => {
+            e.stopPropagation();
+            const target = e.target as HTMLInputElement;
+            const file = (target.files as FileList)[0];
+
+            // Reset the input field to allow uploading the same file again
+            target.value = "";
+
+            this.loadModelFromFile(file);
+        };
+
+        this._overlayContainerElement.appendChild(fileUploadInputButton);
     }
 
     private createOverlayContainer(): void {
@@ -112,10 +210,10 @@ class OverlayElements {
         this._controlSwitchElement.appendChild(toggleInput);
         this._controlSwitchElement.appendChild(toggleLabel);
 
-        toggleLabel.addEventListener("click", (e: MouseEvent) => {
+        toggleLabel.onclick = (e: MouseEvent) => {
             e.stopPropagation();
             this.switchControlMode();
-        });
+        };
 
         this._overlayContainerElement.appendChild(this._controlSwitchElement);
     }

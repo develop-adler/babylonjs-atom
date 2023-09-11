@@ -120,7 +120,7 @@ class App {
                 this.dispose();
             };
 
-            new OverlayElements();
+            new OverlayElements(this._scene, this._atom, this._shadowGenerators);
         });
     }
 
