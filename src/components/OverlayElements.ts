@@ -1,4 +1,4 @@
-import { Mesh, MeshBuilder, PhysicsAggregate, PhysicsShapeType, SceneLoader, Vector3 } from "@babylonjs/core";
+import { Mesh, SceneLoader } from "@babylonjs/core";
 import { SCENE_SETTINGS } from "../utils/global";
 import Core from "./Core";
 
