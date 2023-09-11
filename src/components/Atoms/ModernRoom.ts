@@ -31,14 +31,17 @@ class ModernRoom extends Atom {
 
                 this.addMeshesToReflectionList(this._meshes as Mesh[]);
 
-                if (this._shadowGenerators.length) {
-                    this._shadowGenerators?.forEach(generator => {
-                        this._meshes.forEach(mesh => {
-                            mesh.receiveShadows = true;
-                            generator.addShadowCaster(mesh);
-                        });
-                    });
-                }
+                this._meshes.forEach(mesh => {
+                    mesh.receiveShadows = true;
+                });
+                // if (this._shadowGenerators.length) {
+                //     this._shadowGenerators?.forEach(generator => {
+                //         this._meshes.forEach(mesh => {
+                //             mesh.receiveShadows = true;
+                //             generator.addShadowCaster(mesh);
+                //         });
+                //     });
+                // }
             },
         );
     }
