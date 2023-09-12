@@ -30,11 +30,11 @@ class ClassicRoom extends Atom {
 
                 this._root.scaling.scaleInPlace(1.5);
 
-                new Picture("/textures/baby-sonic-2.png", scene, this, "front");
-                new Picture("/textures/bonk-shiba.jpg", scene, this, "leftFront");
-                new Picture("/textures/angry-frog.jpg", scene, this, "rightFront");
-                new Picture("/textures/1234.png", scene, this, "leftBack");
-                new Picture("/textures/hyundai.png", scene, this, "rightBack");
+                new Picture("/textures/baby-sonic-2.avif", scene, this, "front");
+                new Picture("/textures/bonk-shiba.avif", scene, this, "leftFront");
+                new Picture("/textures/angry-frog.avif", scene, this, "rightFront");
+                new Picture("/textures/1234.avif", scene, this, "leftBack");
+                new Picture("/textures/hyundai.avif", scene, this, "rightBack");
 
                 this.addMeshesToReflectionList(this._meshes as Mesh[]);
 
