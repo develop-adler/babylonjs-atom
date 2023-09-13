@@ -15,6 +15,7 @@ import Furniture from "./AtomElements/Furniture";
 import LoadingUI from "./LoadingUI";
 
 import { SCENE_SETTINGS } from "../utils/global";
+import { isMobile } from "../utils/functions";
 
 // using CDN in index.html
 declare function HavokPhysics(): any;
@@ -24,12 +25,14 @@ class Core {
     private _engine: BABYLON.Engine;
     private _scene: BABYLON.Scene;
     private _havok!: HavokPhysicsWithBindings;
-    private _camera!: BABYLON.ArcRotateCamera | BABYLON.UniversalCamera;
+    private _camera: BABYLON.ArcRotateCamera;
     private _atom!: Atom;
     private _character!: Character;
     private _characterController?: CharacterController;
     private _joystick: Joystick;
     private _shadowGenerators: BABYLON.ShadowGenerator[] = [];
+
+    private static readonly CHARACTER_CAMERA_HEIGHT: number = 1.15;
 
     constructor() {
         new LoadingUI();
@@ -51,6 +54,15 @@ class Core {
         this._engine.displayLoadingUI();
 
         this._scene = new BABYLON.Scene(this._engine);
+        this._camera = new BABYLON.ArcRotateCamera(
+            "camera",
+            -Math.PI * 0.5,
+            Math.PI * 0.5,
+            5,
+            new BABYLON.Vector3(0, Core.CHARACTER_CAMERA_HEIGHT, -2), // target
+            this._scene,
+        );
+        this._initCamera();
 
         // wait until scene has physics then create scene
         this.initScene().then(async () => {
@@ -80,7 +92,7 @@ class Core {
             });
 
             // thirperson controller mode as default mode
-            this.initThirdPersonController();
+            this.initThirdPersonCamera();
             await this.initCharacterAsync().then(() => {
                 this._characterController = new CharacterController(
                     this._character.root as BABYLON.Mesh,
@@ -163,54 +175,13 @@ class Core {
         this._scene.collisionsEnabled = true;
     }
 
-    private initFirstPersonController(pointerLock: boolean = false): void {
-        if (!SCENE_SETTINGS.isThirdperson) return;
-
-        this.resetCamera();
-
-        this._camera = new BABYLON.UniversalCamera(
-            "camera",
-            new BABYLON.Vector3(0, 2.5, -2),
-            this._scene,
-        );
-        this._camera.attachControl();
-        this._scene.switchActiveCamera(this._camera);
-
-        if (pointerLock) {
-            this._engine.enterPointerlock();
-            this._scene.onPointerDown = e => {
-                // left click
-                if (e.button === 0) this._engine.enterPointerlock();
-            };
-        } else {
-            this._engine.exitPointerlock();
-            this._scene.onPointerDown = undefined;
-        }
-
-        this._camera.applyGravity = true; // apply gravity to the camera
-        this._camera.checkCollisions = true; // prevent walking through walls
-        this._camera.ellipsoid = new BABYLON.Vector3(0.6, 1.1, 0.6); // collision box
-        this._camera.speed = 1; // walking speed
-        this._camera.inertia = 0.5; // reduce slipping
-        this._camera.minZ = 0.1; // prevent clipping
-        this._camera.angularSensibility = 1200; // mouse sensitivity: higher value = less sensitive
-
-        this._camera.keysUp.push(87); // W
-        this._camera.keysLeft.push(65); // A
-        this._camera.keysDown.push(83); // S
-        this._camera.keysRight.push(68); // D
-    }
-
-    private initThirdPersonController(): void {
-        if (SCENE_SETTINGS.isThirdperson) return;
-        this.resetCamera();
-
+    private _initCamera(): void {
         this._camera = new BABYLON.ArcRotateCamera(
             "camera",
             -Math.PI * 0.5,
             Math.PI * 0.5,
             5,
-            new BABYLON.Vector3(0, 1.15, -2), // target
+            new BABYLON.Vector3(0, Core.CHARACTER_CAMERA_HEIGHT, -2), // target
             this._scene,
         );
 
@@ -235,11 +206,11 @@ class Core {
 
         // camera min distance and max distance
         this._camera.lowerRadiusLimit = 0.5;
-        this._camera.upperRadiusLimit = 10;
+        this._camera.upperRadiusLimit = 5;
 
         //  lower rotation sensitivity, higher value = less sensitive
-        this._camera.angularSensibilityX = 2000;
-        this._camera.angularSensibilityY = 2000;
+        this._camera.angularSensibilityX = isMobile() ? 1000 : 2200;
+        this._camera.angularSensibilityY = isMobile() ? 1000 : 2200;
 
         // disable rotation using keyboard arrow key
         this._camera.keysUp = [];
@@ -249,24 +220,45 @@ class Core {
 
         // disable panning
         this._camera.panningSensibility = 0;
+    }
+
+    private initFirstPersonCamera(pointerLock: boolean = false): void {
+        if (pointerLock && !isMobile()) {
+            this._engine.enterPointerlock();
+            this._scene.onPointerDown = e => {
+                // left click
+                if (e.button === 0)
+                    this._engine.enterPointerlock();
+            };
+        } else {
+            this._engine.exitPointerlock();
+            this._scene.onPointerDown = undefined;
+        }
+
+        this._camera.lowerRadiusLimit = 0; // min distance
+        this._camera.upperRadiusLimit = 0; // max distance
+        this._scene.switchActiveCamera(this._camera);
+
+        SCENE_SETTINGS.isThirdperson = false;
+    }
+
+    private initThirdPersonCamera(): void {
+        this._camera.lowerRadiusLimit = 0.5; // min distance
+        this._camera.upperRadiusLimit = 3; // max distance
+        this._scene.switchActiveCamera(this._camera);
 
         SCENE_SETTINGS.isThirdperson = true;
     }
 
     public setFirstperson(pointerLock: boolean = false): void {
-        if (!SCENE_SETTINGS.isThirdperson) return;
-        // switch to first person controller (without pointer lock) by pressing 2
-        this.stopCharacterController();
         this._character?.hide();
-        this.initFirstPersonController(pointerLock);
+        this.initFirstPersonCamera(pointerLock);
 
         SCENE_SETTINGS.isThirdperson = false;
     }
 
     public setThirdperson(): void {
-        if (SCENE_SETTINGS.isThirdperson) return;
-        // switch to third person controller by pressing 3
-        this.initThirdPersonController();
+        this.initThirdPersonCamera();
 
         if (!this._character) {
             this.initCharacterAsync().then(() => {
@@ -325,39 +317,39 @@ class Core {
                             this._scene.debugLayer.show();
                         }
                         break;
-                    case "1":
-                        // switch to first person controller (with pointer lock) by pressing 1
-                        this.setFirstperson(true);
-                        break;
-                    case "2":
-                        // switch to first person controller (without pointer lock) by pressing 2
-                        this.setFirstperson(false);
-                        break;
-                    case "3":
-                        this.setThirdperson();
-                        break;
+                    // case "1":
+                    //     // switch to first person controller (with pointer lock) by pressing 1
+                    //     this.setFirstperson(true);
+                    //     break;
+                    // case "2":
+                    //     // switch to first person controller (without pointer lock) by pressing 2
+                    //     this.setFirstperson(false);
+                    //     break;
+                    // case "3":
+                    //     this.setThirdperson();
+                    //     break;
                 }
             }
         });
 
-        // phone input
-        const hammerManager = new Hammer.Manager(this._canvas);
+        // // phone input
+        // const hammerManager = new Hammer.Manager(this._canvas);
 
-        // create swipe gesture recognizer and add recognizer to manager
-        const Swipe = new Hammer.Swipe();
-        hammerManager.add(Swipe);
+        // // create swipe gesture recognizer and add recognizer to manager
+        // const Swipe = new Hammer.Swipe();
+        // hammerManager.add(Swipe);
 
-        hammerManager.get("swipe").set({ direction: Hammer.DIRECTION_ALL });
-        hammerManager.on("swipe", (e: any) => {
-            switch (e.direction) {
-                case Hammer.DIRECTION_UP:
-                    break;
-                case Hammer.DIRECTION_LEFT:
-                    break;
-                case Hammer.DIRECTION_RIGHT:
-                    break;
-            }
-        });
+        // hammerManager.get("swipe").set({ direction: Hammer.DIRECTION_ALL });
+        // hammerManager.on("swipe", (e: any) => {
+        //     switch (e.direction) {
+        //         case Hammer.DIRECTION_UP:
+        //             break;
+        //         case Hammer.DIRECTION_LEFT:
+        //             break;
+        //         case Hammer.DIRECTION_RIGHT:
+        //             break;
+        //     }
+        // });
     }
 
     private createLight(): void {

@@ -159,11 +159,12 @@ class Character {
             mesh.isVisible = false;
         });
 
-        this.physicsAggregate.body.disablePreStep = false;
-        this._capsuleMesh.position = new Vector3(0, Character.CAPSULE_HEIGHT * 0.5, 0);
-        this._scene.onAfterPhysicsObservable.addOnce(() => {
-            this.physicsAggregate.body.disablePreStep = true;
-        });
+        // // reset position
+        // this.physicsAggregate.body.disablePreStep = false;
+        // this._capsuleMesh.position = new Vector3(0, Character.CAPSULE_HEIGHT * 0.5, 0);
+        // this._scene.onAfterPhysicsObservable.addOnce(() => {
+        //     this.physicsAggregate.body.disablePreStep = true;
+        // });
     }
 
     public dispose(): void {

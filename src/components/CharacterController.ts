@@ -14,6 +14,7 @@ import {
 } from "@babylonjs/core";
 import Joystick from "./Joystick";
 import { EventData, JoystickOutputData } from "nipplejs";
+import { SCENE_SETTINGS } from "../utils/global";
 
 class CharacterController {
     private _scene: Scene;
@@ -413,7 +414,11 @@ class CharacterController {
         }
 
         // reset max distance of camera
-        this._camera.upperRadiusLimit = 10;
+        if (SCENE_SETTINGS.isThirdperson) {
+            this._camera.upperRadiusLimit = 5;
+        } else {
+            this._camera.upperRadiusLimit = 0;
+        }
     }
 
     private jump(): void {
