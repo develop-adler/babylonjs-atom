@@ -25,12 +25,7 @@ class Picture {
     private _pictureMaterial!: StandardMaterial;
     private _side: PictureSide;
 
-    constructor(
-        src: string,
-        scene: Scene,
-        atom: Atom,
-        side?: PictureSide,
-    ) {
+    constructor(src: string, scene: Scene, atom: Atom, side?: PictureSide) {
         this._src = src;
         this._scene = scene;
         this._atom = atom;
@@ -332,20 +327,28 @@ class Picture {
 
             // on hover event for picture
             const actionManager = new ActionManager(this._scene);
-            actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
-                // change cursor to pointer on hover
-                if (!SCENE_SETTINGS.isEditingPictureMode) return;
-                this._scene.hoverCursor = "pointer";
-                this._pictureFrameMaterial.diffuseColor = Color3.Yellow();
-                this._pictureFrameMaterial.emissiveColor = Color3.Yellow();
-            }));
-            actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
-                // change cursor to default on hover out
-                if (!SCENE_SETTINGS.isEditingPictureMode) return;
-                this._scene.hoverCursor = "default";
-                this._pictureFrameMaterial.diffuseColor = new Color3(0.25, 0.25, 0.25);
-                this._pictureFrameMaterial.emissiveColor = Color3.Black();
-            }));
+            actionManager.registerAction(
+                new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
+                    // change cursor to pointer on hover
+                    if (!SCENE_SETTINGS.isEditingPictureMode) return;
+                    this._scene.hoverCursor = "pointer";
+                    this._pictureFrameMaterial.diffuseColor = Color3.Yellow();
+                    this._pictureFrameMaterial.emissiveColor = Color3.Yellow();
+                }),
+            );
+            actionManager.registerAction(
+                new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
+                    // change cursor to default on hover out
+                    if (!SCENE_SETTINGS.isEditingPictureMode) return;
+                    this._scene.hoverCursor = "default";
+                    this._pictureFrameMaterial.diffuseColor = new Color3(
+                        0.25,
+                        0.25,
+                        0.25,
+                    );
+                    this._pictureFrameMaterial.emissiveColor = Color3.Black();
+                }),
+            );
             this._pictureMesh.actionManager = actionManager;
 
             // on click event for picture in editing mode
@@ -355,17 +358,16 @@ class Picture {
                         if (!SCENE_SETTINGS.isEditingPictureMode) return;
                         if (!pointerInfo?.pickInfo?.hit) return;
 
-                        console.log(pointerInfo?.pickInfo.pickedMesh);
-
                         if (
-                            pointerInfo?.pickInfo.pickedMesh?.name === this._pictureMesh.name &&
-                            SCENE_SETTINGS.editingImage !== this._side
+                            pointerInfo?.pickInfo.pickedMesh?.name === this._pictureMesh.name
                         ) {
                             SCENE_SETTINGS.editingImage = this._side;
                             SCENE_SETTINGS.imageUploadInputField.click();
 
-                            const editingImageSide = document.getElementById("editingImageSide")!;
-                            editingImageSide.innerHTML = `Editing image: ${pictureSideMap[SCENE_SETTINGS.editingImage] ?? "None"}`;
+                            const editingImageSide =
+                                document.getElementById("editingImageSide")!;
+                            editingImageSide.innerHTML = `Editing image: ${pictureSideMap[SCENE_SETTINGS.editingImage] ?? "None"
+                                }`;
                             return;
                         }
                         break;
