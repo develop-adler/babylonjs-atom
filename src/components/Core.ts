@@ -37,6 +37,8 @@ class Core {
         this._canvas = document.createElement("canvas");
         this._canvas.style.width = "100%";
         this._canvas.style.height = "100%";
+        this._canvas.style.border = "none";
+        this._canvas.style.outline = "none";
         this._canvas.id = "babylonCanvas";
         document.getElementById("app")!.appendChild(this._canvas);
 
