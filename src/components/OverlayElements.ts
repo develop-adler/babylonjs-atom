@@ -129,6 +129,11 @@ class OverlayElements {
         controlSwitchElement.appendChild(toggleLabel);
 
         toggleLabel.onclick = (e: MouseEvent) => {
+            if (SCENE_SETTINGS.isEditingPictureMode) {
+                e.preventDefault();
+                window.alert("Please turn off image editing mode first!");
+                return;
+            }
             e.stopPropagation();
 
             if (SCENE_SETTINGS.isThirdperson) {
