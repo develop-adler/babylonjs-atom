@@ -3,7 +3,7 @@ import "@babylonjs/inspector";
 import "@babylonjs/loaders";
 import * as BABYLON from "@babylonjs/core";
 import { HavokPhysicsWithBindings } from "@babylonjs/havok";
-import * as Hammer from "hammerjs";
+// import * as Hammer from "hammerjs";
 
 import Character from "./Character";
 import CharacterController from "./CharacterController";
@@ -413,16 +413,6 @@ class Core {
     //     gizmoManager.usePointerToAttachGizmos = false;
     //     gizmoManager.attachToMesh(lightGizmo.attachedMesh);
     // }
-
-    private resetCamera(): void {
-        if (this._camera) {
-            this._scene.removeCamera(this._camera);
-            this._camera.dispose();
-        }
-
-        this._engine.exitPointerlock();
-        this._scene.onPointerDown = undefined;
-    }
 
     private createAtom(type: string): Atom {
         switch (type) {
