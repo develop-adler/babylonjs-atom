@@ -1,6 +1,5 @@
 import { AbstractMesh, Mesh, Scene, SceneLoader } from "@babylonjs/core";
 import Atom from "./Atom";
-import Picture from "../AtomElements/Picture";
 
 class ClassicRoom extends Atom {
     private _root: AbstractMesh = null!;
@@ -30,11 +29,11 @@ class ClassicRoom extends Atom {
 
                 this._root.scaling.scaleInPlace(1.5);
 
-                new Picture("/textures/baby-sonic-2.avif", scene, this, "front");
-                new Picture("/textures/bonk-shiba.avif", scene, this, "leftFront");
-                new Picture("/textures/angry-frog.avif", scene, this, "rightFront");
-                new Picture("/textures/1234.avif", scene, this, "leftBack");
-                new Picture("/textures/hyundai.avif", scene, this, "rightBack");
+                this.addPictureToAtom("/textures/baby-sonic-2.avif", "front");
+                this.addPictureToAtom("/textures/bonk-shiba.avif", "leftFront");
+                this.addPictureToAtom("/textures/angry-frog.avif", "rightFront");
+                this.addPictureToAtom("/textures/1234.avif", "leftBack");
+                this.addPictureToAtom("/textures/hyundai.avif", "rightBack");
 
                 this.addMeshesToReflectionList(this._meshes as Mesh[]);
 
@@ -57,6 +56,14 @@ class ClassicRoom extends Atom {
     }
     public get meshes(): AbstractMesh[] {
         return this._meshes;
+    }
+
+    public dispose(): void {
+        this._root.dispose();
+        this._meshes.forEach(mesh => {
+            mesh.dispose();
+        });
+        this.dispose();
     }
 }
 

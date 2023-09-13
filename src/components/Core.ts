@@ -119,8 +119,14 @@ class Core {
         });
     }
 
+    public get engine(): BABYLON.Engine {
+        return this._engine;
+    }
     public get scene(): BABYLON.Scene {
         return this._scene;
+    }
+    public get camera(): BABYLON.ArcRotateCamera | BABYLON.UniversalCamera {
+        return this._camera;
     }
     public get atom(): Atom {
         return this._atom;
@@ -166,6 +172,7 @@ class Core {
             this._scene,
         );
         this._camera.attachControl();
+        this._scene.switchActiveCamera(this._camera);
 
         if (pointerLock) {
             this._engine.enterPointerlock();
@@ -180,7 +187,7 @@ class Core {
 
         this._camera.applyGravity = true; // apply gravity to the camera
         this._camera.checkCollisions = true; // prevent walking through walls
-        this._camera.ellipsoid = new BABYLON.Vector3(1, 1.25, 1); // collision box
+        this._camera.ellipsoid = new BABYLON.Vector3(0.6, 1.1, 0.6); // collision box
         this._camera.speed = 1; // walking speed
         this._camera.inertia = 0.5; // reduce slipping
         this._camera.minZ = 0.1; // prevent clipping
@@ -190,8 +197,6 @@ class Core {
         this._camera.keysLeft.push(65); // A
         this._camera.keysDown.push(83); // S
         this._camera.keysRight.push(68); // D
-
-        SCENE_SETTINGS.isThirdperson = false;
     }
 
     private initThirdPersonController(): void {
@@ -211,6 +216,7 @@ class Core {
 
         // This attaches the camera to the canvas
         this._camera.attachControl(this._canvas, true);
+        this._scene.switchActiveCamera(this._camera);
 
         // widen camera FOV on narrows screens
         if (window.innerWidth < window.innerHeight) {
@@ -251,6 +257,8 @@ class Core {
         this.stopCharacterController();
         this._character?.hide();
         this.initFirstPersonController(pointerLock);
+
+        SCENE_SETTINGS.isThirdperson = false;
     }
 
     public setThirdperson(): void {
@@ -299,6 +307,8 @@ class Core {
         } else {
             this._characterController.start();
         }
+
+        SCENE_SETTINGS.isThirdperson = true;
     }
 
     private initInputControls(): void {
@@ -411,8 +421,8 @@ class Core {
     // }
 
     private resetCamera(): void {
-        this._scene.removeCamera(this._camera);
-        if (this._camera instanceof BABYLON.ArcRotateCamera) {
+        if (this._camera) {
+            this._scene.removeCamera(this._camera);
             this._camera.dispose();
         }
 

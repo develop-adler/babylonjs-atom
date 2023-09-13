@@ -1,13 +1,18 @@
 import {
+    ActionManager,
     Color3,
+    ExecuteCodeAction,
     Mesh,
     MeshBuilder,
+    PointerEventTypes,
+    PointerInfo,
     Scene,
     StandardMaterial,
     Texture,
     Vector3,
 } from "@babylonjs/core";
 import Atom from "../Atoms/Atom";
+import { SCENE_SETTINGS } from "../../utils/global";
 
 class Picture {
     private _scene: Scene;
@@ -15,18 +20,16 @@ class Picture {
     private _src: string;
     private _pictureFrameMesh!: Mesh;
     private _pictureMesh!: Mesh;
-    private _side:
-        | "front"
-        | "leftFront"
-        | "rightFront"
-        | "leftBack"
-        | "rightBack";
+    private _texture!: Texture;
+    private _pictureFrameMaterial!: StandardMaterial;
+    private _pictureMaterial!: StandardMaterial;
+    private _side: PictureSide;
 
     constructor(
         src: string,
         scene: Scene,
         atom: Atom,
-        side?: "front" | "leftFront" | "rightFront" | "leftBack" | "rightBack",
+        side?: PictureSide,
     ) {
         this._src = src;
         this._scene = scene;
@@ -44,11 +47,22 @@ class Picture {
     public get atom(): Atom {
         return this._atom;
     }
+    public get side():
+        | "front"
+        | "leftFront"
+        | "rightFront"
+        | "leftBack"
+        | "rightBack" {
+        return this._side;
+    }
     public get picture(): Mesh {
         return this._pictureMesh;
     }
     public get pictureFrame(): Mesh {
         return this._pictureFrameMesh;
+    }
+    public get texture(): Texture {
+        return this._texture;
     }
 
     private createPicture(): void {
@@ -66,19 +80,19 @@ class Picture {
         }
 
         // create materials
-        const pictureFrameMaterial = new StandardMaterial(
+        this._pictureFrameMaterial = new StandardMaterial(
             `pictureFrame_${this._src}_material`,
             this._scene,
         );
-        pictureFrameMaterial.diffuseColor = new Color3(0.25, 0.25, 0.25);
+        this._pictureFrameMaterial.diffuseColor = new Color3(0.25, 0.25, 0.25);
 
-        const pictureMaterial = new StandardMaterial(
+        this._pictureMaterial = new StandardMaterial(
             `picture_${this._src}_material`,
             this._scene,
         );
-        const pictureTexture = new Texture(this._src, this._scene);
-        pictureMaterial.diffuseTexture = pictureTexture;
-        pictureMaterial.emissiveColor = new Color3(0.5, 0.5, 0.5); // brighten image
+        this._texture = new Texture(this._src, this._scene);
+        this._pictureMaterial.diffuseTexture = this._texture;
+        this._pictureMaterial.emissiveColor = new Color3(0.5, 0.5, 0.5); // brighten image
 
         // get the aspect ratio of the image and apply the ratio to the picture frame mesh
         image.onload = () => {
@@ -106,7 +120,7 @@ class Picture {
                         },
                         this._scene,
                     );
-                    this._pictureFrameMesh.material = pictureFrameMaterial;
+                    this._pictureFrameMesh.material = this._pictureFrameMaterial;
 
                     this._pictureMesh = MeshBuilder.CreatePlane(
                         "picture_" + this._src + "_mesh",
@@ -116,7 +130,7 @@ class Picture {
                         },
                         this._scene,
                     );
-                    this._pictureMesh.material = pictureMaterial;
+                    this._pictureMesh.material = this._pictureMaterial;
 
                     // fix picture position and rotation
                     this._pictureMesh.position.z = 0.011;
@@ -154,7 +168,7 @@ class Picture {
                         },
                         this._scene,
                     );
-                    this._pictureFrameMesh.material = pictureFrameMaterial;
+                    this._pictureFrameMesh.material = this._pictureFrameMaterial;
 
                     this._pictureMesh = MeshBuilder.CreatePlane(
                         "picture_" + this._src + "_mesh",
@@ -164,7 +178,7 @@ class Picture {
                         },
                         this._scene,
                     );
-                    this._pictureMesh.material = pictureMaterial;
+                    this._pictureMesh.material = this._pictureMaterial;
 
                     // fix picture position and rotation
                     this._pictureMesh.position.x = -0.011;
@@ -193,7 +207,7 @@ class Picture {
                         },
                         this._scene,
                     );
-                    this._pictureFrameMesh.material = pictureFrameMaterial;
+                    this._pictureFrameMesh.material = this._pictureFrameMaterial;
 
                     this._pictureMesh = MeshBuilder.CreatePlane(
                         "picture_" + this._src + "_mesh",
@@ -203,7 +217,7 @@ class Picture {
                         },
                         this._scene,
                     );
-                    this._pictureMesh.material = pictureMaterial;
+                    this._pictureMesh.material = this._pictureMaterial;
 
                     // fix picture position and rotation
                     this._pictureMesh.position.x = 0.011;
@@ -232,7 +246,7 @@ class Picture {
                         },
                         this._scene,
                     );
-                    this._pictureFrameMesh.material = pictureFrameMaterial;
+                    this._pictureFrameMesh.material = this._pictureFrameMaterial;
 
                     this._pictureMesh = MeshBuilder.CreatePlane(
                         "picture_" + this._src + "_mesh",
@@ -242,7 +256,7 @@ class Picture {
                         },
                         this._scene,
                     );
-                    this._pictureMesh.material = pictureMaterial;
+                    this._pictureMesh.material = this._pictureMaterial;
 
                     // fix picture position and rotation
                     this._pictureMesh.position.x = -0.011;
@@ -271,7 +285,7 @@ class Picture {
                         },
                         this._scene,
                     );
-                    this._pictureFrameMesh.material = pictureFrameMaterial;
+                    this._pictureFrameMesh.material = this._pictureFrameMaterial;
 
                     this._pictureMesh = MeshBuilder.CreatePlane(
                         "picture_" + this._src + "_mesh",
@@ -281,7 +295,7 @@ class Picture {
                         },
                         this._scene,
                     );
-                    this._pictureMesh.material = pictureMaterial;
+                    this._pictureMesh.material = this._pictureMaterial;
 
                     // fix picture position and rotation
                     this._pictureMesh.position.x = 0.011;
@@ -301,8 +315,76 @@ class Picture {
                     );
                     break;
             }
-            this._atom.addMeshesToReflectionList([this._pictureFrameMesh, this._pictureMesh]);
+
+            this._atom.addMeshesToReflectionList([
+                this._pictureFrameMesh,
+                this._pictureMesh,
+            ]);
+
+            const pictureSideMap = {
+                front: "Front",
+                leftFront: "Left Front",
+                rightFront: "Right Front",
+                leftBack: "Left Back",
+                rightBack: "Right Back",
+            };
+
+            // on hover event for picture
+            const actionManager = new ActionManager(this._scene);
+            actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
+                // change cursor to pointer on hover
+                if (!SCENE_SETTINGS.isEditingPictureMode) return;
+                this._scene.hoverCursor = "pointer";
+                this._pictureFrameMaterial.diffuseColor = Color3.Yellow();
+                this._pictureFrameMaterial.emissiveColor = Color3.Yellow();
+            }));
+            actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
+                // change cursor to default on hover out
+                if (!SCENE_SETTINGS.isEditingPictureMode) return;
+                this._scene.hoverCursor = "default";
+                this._pictureFrameMaterial.diffuseColor = new Color3(0.25, 0.25, 0.25);
+                this._pictureFrameMaterial.emissiveColor = Color3.Black();
+            }));
+            this._pictureMesh.actionManager = actionManager;
+
+            // on click event for picture in editing mode
+            this._scene.onPointerObservable.add((pointerInfo: PointerInfo) => {
+                switch (pointerInfo.type) {
+                    case PointerEventTypes.POINTERPICK:
+                        if (!SCENE_SETTINGS.isEditingPictureMode) return;
+                        if (!pointerInfo?.pickInfo?.hit) return;
+
+                        console.log(pointerInfo?.pickInfo.pickedMesh);
+
+                        if (
+                            pointerInfo?.pickInfo.pickedMesh?.name === this._pictureMesh.name &&
+                            SCENE_SETTINGS.editingImage !== this._side
+                        ) {
+                            SCENE_SETTINGS.editingImage = this._side;
+                            SCENE_SETTINGS.imageUploadInputField.click();
+
+                            const editingImageSide = document.getElementById("editingImageSide")!;
+                            editingImageSide.innerHTML = `Editing image: ${pictureSideMap[SCENE_SETTINGS.editingImage] ?? "None"}`;
+                            return;
+                        }
+                        break;
+                }
+            });
         };
+    }
+
+    public dispose(): void {
+        this._scene.removeMesh(this._pictureFrameMesh);
+        this._scene.removeMesh(this._pictureMesh);
+        this._scene.removeTexture(this._texture);
+        this._scene.removeMaterial(this._pictureFrameMaterial);
+        this._scene.removeMaterial(this._pictureMaterial);
+
+        this._pictureFrameMesh.dispose();
+        this._pictureMesh.dispose();
+        this._texture.dispose();
+        this._pictureFrameMaterial.dispose();
+        this._pictureMaterial.dispose();
     }
 }
 
