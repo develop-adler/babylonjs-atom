@@ -12,8 +12,7 @@ class OverlayElements {
     private _core: Core;
 
     private _appElement: HTMLElement;
-    private _overlayContainerElement!: HTMLElement;
-    private _controlSwitchElement!: HTMLElement;
+    private _overlayContainerElement!: HTMLDivElement;
 
     constructor(core: Core) {
         this._core = core;
@@ -31,6 +30,7 @@ class OverlayElements {
         const css = document.createElement("style");
         css.innerHTML = `
             #overlayContainer {
+                display: flex;
                 position: absolute;
                 top: 0;
                 left: 0;
@@ -45,8 +45,8 @@ class OverlayElements {
     }
 
     private _createControlSwitchElement(): void {
-        this._controlSwitchElement = document.createElement("div");
-        this._controlSwitchElement.id = "controlSwitch";
+        const controlSwitchElement = document.createElement("div");
+        controlSwitchElement.id = "controlSwitch";
         const css = document.createElement("style");
         css.innerHTML = `
             #controlSwitch {
@@ -58,16 +58,16 @@ class OverlayElements {
                 // backdrop-filter: blur(0.3125rem);
                 // border-radius: 1.5rem;
                 border: none;
+                outline: none;
                 padding: 0;
                 scale: 1;
-            
-                @media (max-width: 768px) {
-                    left: auto;
-                    right: 0.1rem;
-                    bottom: 0.1rem;
-                    scale: 0.8;
-                }
                 transition: all 0.4s ease-in-out;
+
+                @media screen and (max-width: 768px) {
+                    right: -3rem;
+                    bottom: -0.4rem;
+                    scale: 0.5;
+                }
             }
 
             input[type=checkbox]{
@@ -125,8 +125,8 @@ class OverlayElements {
         toggleLabel.id = "toggle";
         toggleLabel.htmlFor = "toggleInput";
 
-        this._controlSwitchElement.appendChild(toggleInput);
-        this._controlSwitchElement.appendChild(toggleLabel);
+        controlSwitchElement.appendChild(toggleInput);
+        controlSwitchElement.appendChild(toggleLabel);
 
         toggleLabel.onclick = (e: MouseEvent) => {
             e.stopPropagation();
@@ -138,7 +138,7 @@ class OverlayElements {
             }
         };
 
-        this._overlayContainerElement.appendChild(this._controlSwitchElement);
+        this._overlayContainerElement.appendChild(controlSwitchElement);
     }
 
     private async _loadModelFromFile(file: File): Promise<void> {
@@ -202,6 +202,10 @@ class OverlayElements {
                 padding: 0.4rem 0.8rem;
                 border: none;
                 border-radius: 0.5rem;
+
+                @media screen and (max-width: 768px) {
+                    font-size: 0.7rem;
+                }
             }
             #modelUploadInputField {
                 display: none;
@@ -250,6 +254,11 @@ class OverlayElements {
                 padding: 0.4rem 0.8rem;
                 border: none;
                 border-radius: 0.5rem;
+
+                @media screen and (max-width: 768px) {
+                    font-size: 0.7rem;
+                    left: 7rem;
+                }
             }
         `;
         document.getElementsByTagName("head")[0].appendChild(css);
@@ -259,13 +268,13 @@ class OverlayElements {
             SCENE_SETTINGS.isEditingPictureMode =
                 !SCENE_SETTINGS.isEditingPictureMode;
 
-            const uploadImageGuideText = document.getElementById("uploadImageGuideText")!;
+            const uploadImageGuideText = document.getElementById(
+                "uploadImageGuideText",
+            )!;
             if (SCENE_SETTINGS.isEditingPictureMode) {
                 toggleImageEditingButton.style.backgroundColor = "#fc4f91";
                 uploadImageGuideText.style.display = "block";
             } else {
-                console.log('called is editing picture mode');
-
                 SCENE_SETTINGS.editingImage = null;
                 toggleImageEditingButton.style.backgroundColor = "#8a8a8a";
                 uploadImageGuideText.style.display = "none";
@@ -289,7 +298,8 @@ class OverlayElements {
 
         const editingImageSide = document.createElement("p");
         editingImageSide.id = "editingImageSide";
-        editingImageSide.innerHTML = `Editing image: ${SCENE_SETTINGS.editingImage ?? "None"}`;
+        editingImageSide.innerHTML = `Editing image: ${SCENE_SETTINGS.editingImage ?? "None"
+            }`;
         uploadImageGuideText.appendChild(editingImageSide);
 
         SCENE_SETTINGS.imageUploadInputField = document.createElement("input");
@@ -303,10 +313,19 @@ class OverlayElements {
                 display: none;
                 position: absolute;
                 top: 1rem;
+                left: auto;
                 right: 1rem;
                 font-size: 1.8rem;
                 font-weight: 700;
                 text-align: right;
+
+                @media screen and (max-width: 768px) {
+                    font-size: 0.7rem;
+                    top: 3rem;
+                    left: 1rem;
+                    right: auto;
+                    text-align: left;
+                }
             }
             #imageUploadInputField {
                 display: none;
@@ -327,7 +346,7 @@ class OverlayElements {
             // get src from uploaded file
             const src = URL.createObjectURL(file);
 
-            console.log('side in on change function', SCENE_SETTINGS.editingImage);
+            console.log("side in on change function", SCENE_SETTINGS.editingImage);
 
             this._core.atom.updatePictureInAtom(src, SCENE_SETTINGS.editingImage!);
         };
