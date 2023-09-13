@@ -93,6 +93,7 @@ class Picture {
         this._texture = new Texture(this._src, this._scene);
         this._pictureMaterial.diffuseTexture = this._texture;
         this._pictureMaterial.emissiveColor = new Color3(0.5, 0.5, 0.5); // brighten image
+        this._pictureMaterial.useAlphaFromDiffuseTexture = true;
 
         // get the aspect ratio of the image and apply the ratio to the picture frame mesh
         image.onload = () => {
