@@ -346,8 +346,6 @@ class OverlayElements {
             // get src from uploaded file
             const src = URL.createObjectURL(file);
 
-            console.log("side in on change function", SCENE_SETTINGS.editingImage);
-
             this._core.atom.updatePictureInAtom(src, SCENE_SETTINGS.editingImage!);
         };
     }
