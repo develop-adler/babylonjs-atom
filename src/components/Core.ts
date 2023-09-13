@@ -437,26 +437,20 @@ class Core {
         await this._character.loadModel();
     }
 
-    private disposeCharacter(): void {
-        this._character?.dispose();
-        this._character = null!;
-    }
-
-    private stopCharacterController(): void {
-        this._characterController?.dispose();
-        this._characterController = null!;
-    }
-
     private dispose(): void {
         // dispose cameras
         this._scene.cameras.forEach(camera => {
+            this._scene.removeCamera(camera);
             camera.dispose();
         });
 
         // dispose character and character controller
-        this.disposeCharacter();
-        this.stopCharacterController();
+        this._character?.dispose();
+        this._character = null!;
+        this._characterController?.dispose();
+        this._characterController = null!;
         this._joystick.dispose();
+        this._joystick = null!;
 
         this._engine.stopRenderLoop();
         this._scene.dispose();
