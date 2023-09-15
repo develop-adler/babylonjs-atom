@@ -338,17 +338,17 @@ class OverlayElements {
             e.stopPropagation();
             switch (button) {
                 case "top":
-                    modelTransformButtonTop.classList.toggle("transformButtonSelected");
+                    modelTransformButtonTop.classList.add("transformButtonSelected");
                     modelTransformButtonMiddle.classList.remove("transformButtonSelected");
                     modelTransformButtonBottom.classList.remove("transformButtonSelected");
                     break;
                 case "middle":
-                    modelTransformButtonMiddle.classList.toggle("transformButtonSelected");
+                    modelTransformButtonMiddle.classList.add("transformButtonSelected");
                     modelTransformButtonTop.classList.remove("transformButtonSelected");
                     modelTransformButtonBottom.classList.remove("transformButtonSelected");
                     break;
                 case "bottom":
-                    modelTransformButtonBottom.classList.toggle("transformButtonSelected");
+                    modelTransformButtonBottom.classList.add("transformButtonSelected");
                     modelTransformButtonTop.classList.remove("transformButtonSelected");
                     modelTransformButtonMiddle.classList.remove("transformButtonSelected");
                     break;
