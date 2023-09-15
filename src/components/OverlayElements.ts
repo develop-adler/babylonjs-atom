@@ -295,7 +295,6 @@ class OverlayElements {
                 color: white;
                 outline: 1px solid #4b5563;
                 outline-offset: -1px;
-                outline: none;
                 border: none;
                 border-radius: 0.25rem;
 
@@ -309,16 +308,12 @@ class OverlayElements {
                 background-color: #374151;
             }
 
-            .modelTransformButtons.selected {
-                background-color: #152f6e;
-            }
-
-            .modelTransformButtons.selected:hover {
-                background-color: #152f6e;
-            }
-
             .transformButtonSelected {
                 background-color: #152f6e;
+            }
+            
+            .transformButtonSelected:hover {
+                background-color: #171f29;
             }
 
             #modelTransformButtonTop {
