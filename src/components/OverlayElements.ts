@@ -296,7 +296,6 @@ class OverlayElements {
                 outline: 1px solid #4b5563;
                 outline-offset: -1px;
                 border: none;
-                border-radius: 0.25rem;
 
                 border-top-left-radius: 0
                 border-top-right-radius: 0
@@ -334,30 +333,59 @@ class OverlayElements {
             }
         `;
 
-        const toggleSelected = (e: MouseEvent, button: "top" | "middle" | "bottom") => {
+        const toggleSelected = (
+            e: MouseEvent,
+            button: "top" | "middle" | "bottom",
+        ) => {
             e.stopPropagation();
             switch (button) {
                 case "top":
                     modelTransformButtonTop.classList.add("transformButtonSelected");
-                    modelTransformButtonMiddle.classList.remove("transformButtonSelected");
-                    modelTransformButtonBottom.classList.remove("transformButtonSelected");
+                    modelTransformButtonMiddle.classList.remove(
+                        "transformButtonSelected",
+                    );
+                    modelTransformButtonBottom.classList.remove(
+                        "transformButtonSelected",
+                    );
                     break;
                 case "middle":
                     modelTransformButtonMiddle.classList.add("transformButtonSelected");
                     modelTransformButtonTop.classList.remove("transformButtonSelected");
-                    modelTransformButtonBottom.classList.remove("transformButtonSelected");
+                    modelTransformButtonBottom.classList.remove(
+                        "transformButtonSelected",
+                    );
                     break;
                 case "bottom":
                     modelTransformButtonBottom.classList.add("transformButtonSelected");
                     modelTransformButtonTop.classList.remove("transformButtonSelected");
-                    modelTransformButtonMiddle.classList.remove("transformButtonSelected");
+                    modelTransformButtonMiddle.classList.remove(
+                        "transformButtonSelected",
+                    );
                     break;
             }
         };
 
-        modelTransformButtonTop.onclick = (e: MouseEvent) => toggleSelected(e, "top");
-        modelTransformButtonMiddle.onclick = (e: MouseEvent) => toggleSelected(e, "middle");
-        modelTransformButtonBottom.onclick = (e: MouseEvent) => toggleSelected(e, "bottom");
+        modelTransformButtonTop.onclick = (e: MouseEvent) => {
+            toggleSelected(e, "top");
+            this._core.gizmoManager.rotationGizmoEnabled = false;
+            this._core.gizmoManager.scaleGizmoEnabled = false;
+            this._core.gizmoManager.positionGizmoEnabled = true;
+        };
+        modelTransformButtonMiddle.onclick = (e: MouseEvent) => {
+            toggleSelected(e, "middle");
+            this._core.gizmoManager.positionGizmoEnabled = false;
+            this._core.gizmoManager.scaleGizmoEnabled = false;
+            this._core.gizmoManager.rotationGizmoEnabled = true;
+        };
+        modelTransformButtonBottom.onclick = (e: MouseEvent) => {
+            toggleSelected(e, "bottom");
+            this._core.gizmoManager.positionGizmoEnabled = false;
+            this._core.gizmoManager.rotationGizmoEnabled = false;
+            this._core.gizmoManager.scaleGizmoEnabled = true;
+        };
+
+        // have position gizmo selected by default
+        modelTransformButtonTop.classList.add("transformButtonSelected")
 
         document
             .getElementsByTagName("head")[0]
@@ -574,13 +602,17 @@ class OverlayElements {
             if (SCENE_SETTINGS.isEditingModelMode) {
                 toggleModelEditingButton.style.backgroundColor = "#fc4f91";
 
-                const modelTransformButtonsContainer = document.getElementById("modelTransformButtonsContainer")!;
+                const modelTransformButtonsContainer = document.getElementById(
+                    "modelTransformButtonsContainer",
+                )!;
                 modelTransformButtonsContainer.style.display = "block";
             } else {
                 SCENE_SETTINGS.editingImage = null;
                 toggleModelEditingButton.style.backgroundColor = "#8a8a8a";
 
-                const modelTransformButtonsContainer = document.getElementById("modelTransformButtonsContainer")!;
+                const modelTransformButtonsContainer = document.getElementById(
+                    "modelTransformButtonsContainer",
+                )!;
                 modelTransformButtonsContainer.style.display = "none";
             }
             this._setupModelEditing();

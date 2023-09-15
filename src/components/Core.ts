@@ -56,18 +56,7 @@ class Core {
 
         this._scene = new BABYLON.Scene(this._engine);
         this._gizmoManager = new BABYLON.GizmoManager(this._scene);
-        this._gizmoManager.positionGizmoEnabled = true;
-        this._gizmoManager.rotationGizmoEnabled = true;
-        this._gizmoManager.scaleGizmoEnabled = true;
-        this._gizmoManager.usePointerToAttachGizmos = false;
-        this._gizmoManager.attachableMeshes = []; // don't allow any mesh to be attached
-
-        this._gizmoManager.gizmos.positionGizmo?.xGizmo.dragBehavior.onDragStartObservable.add(() => {
-            console.log("Position gizmo's x axis started to be dragged");
-        });
-        this._gizmoManager.gizmos.positionGizmo?.xGizmo.dragBehavior.onDragEndObservable.add(() => {
-            console.log("Position gizmo's x axis drag was ended");
-        });
+        this._initGizmoManager();
 
         this._camera = new BABYLON.ArcRotateCamera(
             "camera",
@@ -200,6 +189,37 @@ class Core {
         this._scene.enablePhysics(gravityVector, havokPlugin);
 
         this._scene.collisionsEnabled = true;
+    }
+
+    private _initGizmoManager(): void {
+        this._gizmoManager.positionGizmoEnabled = true;
+        this._gizmoManager.rotationGizmoEnabled = true;
+        this._gizmoManager.scaleGizmoEnabled = true;
+        
+        // use world orientation for gizmos
+        this._gizmoManager.gizmos.positionGizmo!.updateGizmoRotationToMatchAttachedMesh = false;
+        this._gizmoManager.gizmos.rotationGizmo!.updateGizmoRotationToMatchAttachedMesh = false;
+        this._gizmoManager.gizmos.scaleGizmo!.updateGizmoRotationToMatchAttachedMesh = false;
+
+        // disable y axis for position and rotation gizmo
+        this._gizmoManager.gizmos.positionGizmo!.yGizmo.isEnabled = false;
+        this._gizmoManager.gizmos.rotationGizmo!.yGizmo.isEnabled = false;
+
+        // enable only position gizmo by default
+        this._gizmoManager.rotationGizmoEnabled = false;
+        this._gizmoManager.scaleGizmoEnabled = false;
+        this._gizmoManager.positionGizmoEnabled = true;
+
+        // disable pointer to attach gizmos
+        this._gizmoManager.usePointerToAttachGizmos = false;
+        this._gizmoManager.attachableMeshes = []; // don't allow any mesh to be attached
+
+        this._gizmoManager.gizmos.positionGizmo?.xGizmo.dragBehavior.onDragStartObservable.add(() => {
+            console.log("Position gizmo's x axis started to be dragged");
+        });
+        this._gizmoManager.gizmos.positionGizmo?.xGizmo.dragBehavior.onDragEndObservable.add(() => {
+            console.log("Position gizmo's x axis drag was ended");
+        });
     }
 
     private _initCamera(): void {
