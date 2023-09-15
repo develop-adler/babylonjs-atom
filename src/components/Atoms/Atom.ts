@@ -1,4 +1,5 @@
 import {
+    AbstractMesh,
     Color3,
     Mesh,
     MeshBuilder,
@@ -23,6 +24,7 @@ abstract class Atom {
     private _dimensions: AtomDimensions;
     private _reflectionList: Mesh[];
     private _pictures: PictureInterface;
+    private _models: { [key: string]: AbstractMesh } = {};
 
     private _groundMesh: Mesh;
     private _frontWallMesh: Mesh;
@@ -165,6 +167,9 @@ abstract class Atom {
     }
     public get pictures(): PictureInterface {
         return this._pictures;
+    }
+    public get models(): { [key: string]: AbstractMesh } {
+        return this._models;
     }
 
     public addMeshToReflectionList(mesh: Mesh): void {

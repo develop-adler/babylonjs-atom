@@ -11,7 +11,7 @@ import Joystick from "./Joystick";
 import Atom from "./Atoms/Atom";
 import ClassicRoom from "./Atoms/ClassicRoom";
 import ModernRoom from "./Atoms/ModernRoom";
-import Furniture from "./AtomElements/Furniture";
+// import Furniture from "./AtomElements/Furniture";
 import LoadingUI from "./LoadingUI";
 
 import { SCENE_SETTINGS } from "../utils/global";
@@ -31,6 +31,7 @@ class Core {
     private _characterController?: CharacterController;
     private _joystick: Joystick;
     private _shadowGenerators: BABYLON.ShadowGenerator[] = [];
+    private _gizmoManager: BABYLON.GizmoManager;
 
     private static readonly CHARACTER_CAMERA_HEIGHT: number = 1.15;
 
@@ -54,6 +55,20 @@ class Core {
         this._engine.displayLoadingUI();
 
         this._scene = new BABYLON.Scene(this._engine);
+        this._gizmoManager = new BABYLON.GizmoManager(this._scene);
+        this._gizmoManager.positionGizmoEnabled = true;
+        this._gizmoManager.rotationGizmoEnabled = true;
+        this._gizmoManager.scaleGizmoEnabled = true;
+        this._gizmoManager.usePointerToAttachGizmos = false;
+        this._gizmoManager.attachableMeshes = []; // don't allow any mesh to be attached
+
+        this._gizmoManager.gizmos.positionGizmo?.xGizmo.dragBehavior.onDragStartObservable.add(() => {
+            console.log("Position gizmo's x axis started to be dragged");
+        });
+        this._gizmoManager.gizmos.positionGizmo?.xGizmo.dragBehavior.onDragEndObservable.add(() => {
+            console.log("Position gizmo's x axis drag was ended");
+        });
+
         this._camera = new BABYLON.ArcRotateCamera(
             "camera",
             -Math.PI * 0.5,
@@ -70,26 +85,26 @@ class Core {
 
             this._atom = this.createAtom("classic");
 
-            new Furniture("table_001.glb", this._scene, this._atom, this._shadowGenerators, {
-                position: new BABYLON.Vector3(3, 0, 2),
-                type: "cylinder",
-            });
-            new Furniture("table_002.glb", this._scene, this._atom, this._shadowGenerators, {
-                position: new BABYLON.Vector3(5, 0, 3),
-                type: "cylinder",
-            });
-            new Furniture("table_003.glb", this._scene, this._atom, this._shadowGenerators, {
-                position: new BABYLON.Vector3(0, 0, -1.25),
-            });
+            // new Furniture("table_001.glb", this._scene, this._atom, this._shadowGenerators, {
+            //     position: new BABYLON.Vector3(3, 0, 2),
+            //     type: "cylinder",
+            // });
+            // new Furniture("table_002.glb", this._scene, this._atom, this._shadowGenerators, {
+            //     position: new BABYLON.Vector3(5, 0, 3),
+            //     type: "cylinder",
+            // });
+            // new Furniture("table_003.glb", this._scene, this._atom, this._shadowGenerators, {
+            //     position: new BABYLON.Vector3(0, 0, -1.25),
+            // });
 
-            new Furniture("sofa_001.glb", this._scene, this._atom, this._shadowGenerators, {
-                position: new BABYLON.Vector3(0, 0, -3),
-                rotation: new BABYLON.Vector3(0, Math.PI, 0),
-            });
-            new Furniture("sofa_002.glb", this._scene, this._atom, this._shadowGenerators, {
-                position: new BABYLON.Vector3(6.8, 0, -4),
-                rotation: new BABYLON.Vector3(0, Math.PI * 0.5, 0),
-            });
+            // new Furniture("sofa_001.glb", this._scene, this._atom, this._shadowGenerators, {
+            //     position: new BABYLON.Vector3(0, 0, -3),
+            //     rotation: new BABYLON.Vector3(0, Math.PI, 0),
+            // });
+            // new Furniture("sofa_002.glb", this._scene, this._atom, this._shadowGenerators, {
+            //     position: new BABYLON.Vector3(6.8, 0, -4),
+            //     rotation: new BABYLON.Vector3(0, Math.PI * 0.5, 0),
+            // });
 
             // thirperson controller mode as default mode
             this.initThirdPersonCamera();
@@ -122,7 +137,7 @@ class Core {
                 } else {
                     this._camera.fov = 0.8;
                 }
-            }
+            };
             window.addEventListener("resize", handleResize);
 
             // remove event listener
@@ -133,11 +148,20 @@ class Core {
         });
     }
 
+    public get canvas(): HTMLCanvasElement {
+        return this._canvas;
+    }
     public get engine(): BABYLON.Engine {
         return this._engine;
     }
     public get scene(): BABYLON.Scene {
         return this._scene;
+    }
+    public get havok(): HavokPhysicsWithBindings {
+        return this._havok;
+    }
+    public get gizmoManager(): BABYLON.GizmoManager {
+        return this._gizmoManager;
     }
     public get camera(): BABYLON.ArcRotateCamera | BABYLON.UniversalCamera {
         return this._camera;
@@ -145,11 +169,14 @@ class Core {
     public get atom(): Atom {
         return this._atom;
     }
+    public get character(): Character {
+        return this._character;
+    }
+    public get characterController(): CharacterController {
+        return this._characterController!;
+    }
     public get shadowGenerators(): BABYLON.ShadowGenerator[] {
         return this._shadowGenerators;
-    }
-    public get havok(): HavokPhysicsWithBindings {
-        return this._havok;
     }
     public get joystick(): Joystick {
         return this._joystick;
@@ -227,8 +254,7 @@ class Core {
             this._engine.enterPointerlock();
             this._scene.onPointerDown = e => {
                 // left click
-                if (e.button === 0)
-                    this._engine.enterPointerlock();
+                if (e.button === 0) this._engine.enterPointerlock();
             };
         } else {
             this._engine.exitPointerlock();
@@ -303,6 +329,98 @@ class Core {
         }
 
         SCENE_SETTINGS.isThirdperson = true;
+    }
+
+    public async _loadModelFromFile(file: File): Promise<void> {
+        BABYLON.SceneLoader.ImportMesh(
+            "",
+            "",
+            file,
+            this._scene,
+            meshes => {
+                // enable shadows and collisions
+                if (this._shadowGenerators.length) {
+                    this._shadowGenerators?.forEach(generator => {
+                        meshes.forEach(mesh => {
+                            mesh.receiveShadows = true;
+                            generator.addShadowCaster(mesh);
+                        });
+                    });
+                }
+
+                // add meshes to reflection list
+                this._atom.addMeshesToReflectionList(meshes as BABYLON.Mesh[]);
+
+                // create a record of <uniqueId, mesh> for each mesh
+                // also set outline settings for each mesh
+                const meshesMap = new Map<number, BABYLON.AbstractMesh>();
+                meshes.forEach(mesh => {
+                    meshesMap.set(mesh.uniqueId, mesh);
+                    mesh.outlineWidth = 0.05;
+                    mesh.outlineColor = BABYLON.Color3.Green();
+                });
+
+                const showOutline = () => {
+                    meshes.forEach(mesh => {
+                        mesh.renderOutline = true;
+                    });
+                };
+
+                const hideOutline = () => {
+                    meshes.forEach(mesh => {
+                        mesh.renderOutline = false;
+                    });
+                };
+
+                // hover over object
+                this._scene.onPointerMove = () => {
+                    if (!SCENE_SETTINGS.isEditingModelMode || SCENE_SETTINGS.hasModelSelected) return;
+
+                    const pickResult = this._scene.pick(
+                        this._scene.pointerX,
+                        this._scene.pointerY,
+                    );
+
+                    if (pickResult.hit) {
+                        if (meshesMap.get(pickResult.pickedMesh!.uniqueId)) {
+                            showOutline();
+                        } else {
+                            hideOutline();
+                        }
+                    }
+                };
+
+                // click on object
+                this._scene.onPointerPick = () => {
+                    if (!SCENE_SETTINGS.isEditingModelMode) return;
+
+                    const pickResult = this._scene.pick(
+                        this._scene.pointerX,
+                        this._scene.pointerY,
+                    );
+
+                    if (pickResult.hit) {
+                        if (meshesMap.get(pickResult.pickedMesh!.uniqueId)) {
+                            // object gets selected
+                            showOutline();
+                            SCENE_SETTINGS.hasModelSelected = true;
+                            // add mesh to gizmo manager attachable meshes
+                            this._gizmoManager.attachToMesh(pickResult.pickedMesh!);
+                        } else {
+                            // object is not selected
+                            hideOutline();
+                            SCENE_SETTINGS.hasModelSelected = false;
+                            this._gizmoManager.attachToMesh(null);
+                        }
+                    }
+                };
+            },
+            null, // onProgress
+            (_, message, exception) => {
+                // onError
+                throw new Error(exception ?? `Error loading model: ${message}`);
+            },
+        );
     }
 
     private initInputControls(): void {
@@ -433,7 +551,11 @@ class Core {
 
     private async initCharacterAsync(): Promise<void> {
         if (this._character) return;
-        this._character = new Character(this._scene, this._atom, this._shadowGenerators);
+        this._character = new Character(
+            this._scene,
+            this._atom,
+            this._shadowGenerators,
+        );
         await this._character.loadModel();
     }
 

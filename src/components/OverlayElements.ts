@@ -1,8 +1,7 @@
 import {
+    AbstractMesh,
     ArcRotateCamera,
-    Mesh,
     Nullable,
-    SceneLoader,
     Vector3,
 } from "@babylonjs/core";
 import { SCENE_SETTINGS } from "../utils/global";
@@ -21,7 +20,9 @@ class OverlayElements {
         this._createOverlayContainer();
         this._createControlSwitchElement();
         this._createModelUploadButton();
-        this._createImageUploadToggleButton();
+        this._createModelTransformButtons();
+        this._createToggleImageUploadButton();
+        this._createToggleModelEditingButton();
     }
 
     private _createOverlayContainer(): void {
@@ -129,9 +130,12 @@ class OverlayElements {
         controlSwitchElement.appendChild(toggleLabel);
 
         toggleLabel.onclick = (e: MouseEvent) => {
-            if (SCENE_SETTINGS.isEditingPictureMode) {
+            if (
+                SCENE_SETTINGS.isEditingModelMode ||
+                SCENE_SETTINGS.isEditingPictureMode
+            ) {
                 e.preventDefault();
-                window.alert("Please turn off image editing mode first!");
+                window.alert("Please turn off editing mode first!");
                 return;
             }
             e.stopPropagation();
@@ -144,43 +148,6 @@ class OverlayElements {
         };
 
         this._overlayContainerElement.appendChild(controlSwitchElement);
-    }
-
-    private async _loadModelFromFile(file: File): Promise<void> {
-        SceneLoader.ImportMesh(
-            "",
-            "",
-            file,
-            this._core.scene,
-            (meshes, particleSystems, skeletons, animationGroups) => {
-                //onSuccess
-                console.log(meshes);
-                console.log(particleSystems);
-                console.log(skeletons);
-                console.log(animationGroups);
-
-                console.log(file);
-
-                // enable shadows and collisions
-                if (this._core.shadowGenerators.length) {
-                    this._core.shadowGenerators?.forEach(generator => {
-                        meshes.forEach(mesh => {
-                            mesh.receiveShadows = true;
-                            mesh.checkCollisions = true;
-                            generator.addShadowCaster(mesh);
-                        });
-                    });
-                }
-
-                // add meshes to reflection list
-                this._core.atom.addMeshesToReflectionList(meshes as Mesh[]);
-            },
-            null, // onProgress
-            (_, message, exception) => {
-                // onError
-                throw new Error(exception ?? `Error loading model: ${message}`);
-            },
-        );
     }
 
     private _createModelUploadButton(): void {
@@ -234,13 +201,180 @@ class OverlayElements {
             // Reset the input field to allow uploading the same file again
             target.value = "";
 
-            this._loadModelFromFile(file);
+            this._core._loadModelFromFile(file);
         };
 
         this._overlayContainerElement.appendChild(modelUploadInputButton);
     }
 
-    private _createImageUploadToggleButton(): void {
+    private _createModelTransformButtons(): void {
+        const modelTransformButtonsContainer = document.createElement("div");
+        modelTransformButtonsContainer.id = "modelTransformButtonsContainer";
+
+        const modelTransformButtonTop = document.createElement("button");
+        modelTransformButtonTop.id = "modelTransformButtonTop";
+        modelTransformButtonTop.classList.add("modelTransformButtons");
+
+        modelTransformButtonTop.innerHTML = `
+            <svg fill="white" viewBox="0 0 16 16" height="2.6rem" width="2.6rem">
+                <path
+                    fillRule="evenodd"
+                    d="M7.646.146a.5.5 0 01.708 0l2 2a.5.5 0 01-.708.708L8.5 1.707V5.5a.5.5 0 01-1 0V1.707L6.354 2.854a.5.5 0 11-.708-.708l2-2zM8 10a.5.5 0 01.5.5v3.793l1.146-1.147a.5.5 0 01.708.708l-2 2a.5.5 0 01-.708 0l-2-2a.5.5 0 01.708-.708L7.5 14.293V10.5A.5.5 0 018 10zM.146 8.354a.5.5 0 010-.708l2-2a.5.5 0 11.708.708L1.707 7.5H5.5a.5.5 0 010 1H1.707l1.147 1.146a.5.5 0 01-.708.708l-2-2zM10 8a.5.5 0 01.5-.5h3.793l-1.147-1.146a.5.5 0 01.708-.708l2 2a.5.5 0 010 .708l-2 2a.5.5 0 01-.708-.708L14.293 8.5H10.5A.5.5 0 0110 8z"
+                />
+            </svg>
+        `;
+
+        const modelTransformButtonMiddle = document.createElement("button");
+        modelTransformButtonMiddle.id = "modelTransformButtonMiddle";
+        modelTransformButtonMiddle.classList.add("modelTransformButtons");
+
+        modelTransformButtonMiddle.innerHTML = `
+            <svg
+                fill="none"
+                stroke="white"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                viewBox="0 0 24 24"
+                height="2.6rem"
+                width="2.6rem"
+            >
+                <path stroke="none" d="M0 0h24v24H0z" />
+                <path d="M20 11A8.1 8.1 0 004.5 9M4 5v4h4M4 13a8.1 8.1 0 0015.5 2m.5 4v-4h-4" />
+                <path d="M13 12 A1 1 0 0 1 12 13 A1 1 0 0 1 11 12 A1 1 0 0 1 13 12 z" />
+            </svg>
+        `;
+
+        const modelTransformButtonBottom = document.createElement("button");
+        modelTransformButtonBottom.id = "modelTransformButtonBottom";
+        modelTransformButtonBottom.classList.add("modelTransformButtons");
+
+        modelTransformButtonBottom.innerHTML = `
+            <svg viewBox="0 0 64 64" fill="white" height="2.4rem" width="2.4rem">
+                <path
+                    fill="none"
+                    stroke="white"
+                    strokeWidth={4}
+                    d="M1 28V1h62v62H36"
+                />
+                <path
+                    fill="white"
+                    stroke="white"
+                    strokeWidth={4}
+                    d="M1 33h30v30H1z"
+                />
+                <path
+                    fill="none"
+                    stroke="white"
+                    strokeLinejoin="bevel"
+                    strokeWidth={4}
+                    d="M57 20V9H46"
+                />
+                <path fill="none" stroke="white" strokeWidth={4} d="M57 9L41 25" />
+            </svg>
+        `;
+
+        const modelTransformButtonsCSS = document.createElement("style");
+        modelTransformButtonsCSS.innerHTML = `
+            #modelTransformButtonsContainer {
+                display: none;
+                position: absolute;
+                left: 1%;
+                top: 10%;
+                height: max-content;
+                width: 5rem;
+            }
+
+            .modelTransformButtons {
+                pointer-events: all;
+                cursor: default;
+                height: 5rem;
+                width: 5rem;
+                background-color: #1f2937;
+                padding: 1rem;
+                color: white;
+                outline: 1px solid #4b5563;
+                outline-offset: -1px;
+                outline: none;
+                border: none;
+                border-radius: 0.25rem;
+
+                border-top-left-radius: 0
+                border-top-right-radius: 0
+                border-bottom-left-radius: 0;
+                border-bottom-right-radius: 0;
+            }
+
+            .modelTransformButtons:hover {
+                background-color: #374151;
+            }
+
+            .modelTransformButtons.selected {
+                background-color: #152f6e;
+            }
+
+            .modelTransformButtons.selected:hover {
+                background-color: #152f6e;
+            }
+
+            .transformButtonSelected {
+                background-color: #152f6e;
+            }
+
+            #modelTransformButtonTop {
+                border-top-left-radius: 0.25rem;
+                border-top-right-radius: 0.25rem;
+                border-bottom-left-radius: 0;
+                border-bottom-right-radius: 0;
+            }
+
+            #modelTransformButtonMiddle {
+            }
+
+            #modelTransformButtonBottom {
+                border-top-left-radius: 0;
+                border-top-right-radius: 0;
+                border-bottom-left-radius: 0.25rem;
+                border-bottom-right-radius: 0.25rem;
+            }
+        `;
+
+        const toggleSelected = (e: MouseEvent, button: "top" | "middle" | "bottom") => {
+            e.stopPropagation();
+            switch (button) {
+                case "top":
+                    modelTransformButtonTop.classList.toggle("transformButtonSelected");
+                    modelTransformButtonMiddle.classList.remove("transformButtonSelected");
+                    modelTransformButtonBottom.classList.remove("transformButtonSelected");
+                    break;
+                case "middle":
+                    modelTransformButtonMiddle.classList.toggle("transformButtonSelected");
+                    modelTransformButtonTop.classList.remove("transformButtonSelected");
+                    modelTransformButtonBottom.classList.remove("transformButtonSelected");
+                    break;
+                case "bottom":
+                    modelTransformButtonBottom.classList.toggle("transformButtonSelected");
+                    modelTransformButtonTop.classList.remove("transformButtonSelected");
+                    modelTransformButtonMiddle.classList.remove("transformButtonSelected");
+                    break;
+            }
+        };
+
+        modelTransformButtonTop.onclick = (e: MouseEvent) => toggleSelected(e, "top");
+        modelTransformButtonMiddle.onclick = (e: MouseEvent) => toggleSelected(e, "middle");
+        modelTransformButtonBottom.onclick = (e: MouseEvent) => toggleSelected(e, "bottom");
+
+        document
+            .getElementsByTagName("head")[0]
+            .appendChild(modelTransformButtonsCSS);
+        modelTransformButtonsContainer.appendChild(modelTransformButtonTop);
+        modelTransformButtonsContainer.appendChild(modelTransformButtonMiddle);
+        modelTransformButtonsContainer.appendChild(modelTransformButtonBottom);
+
+        this._overlayContainerElement.appendChild(modelTransformButtonsContainer);
+    }
+
+    private _createToggleImageUploadButton(): void {
         const toggleImageEditingButton = document.createElement("button");
         toggleImageEditingButton.id = "toggleImageEditingButton";
         toggleImageEditingButton.innerHTML = "Toggle Image Editing";
@@ -401,8 +535,122 @@ class OverlayElements {
             editingPictureCamera.panningSensibility = 0;
 
             this._core.scene.switchActiveCamera(editingPictureCamera);
+            this._core.character.hide();
+            this._core.characterController.stop();
         } else {
             this._core.scene.switchActiveCamera(this._core.camera);
+            this._core.character.show();
+            this._core.characterController.start();
+        }
+    }
+
+    private _createToggleModelEditingButton(): void {
+        const toggleModelEditingButton = document.createElement("button");
+        toggleModelEditingButton.id = "toggleModelEditingButton";
+        toggleModelEditingButton.innerHTML = "Toggle Model Editing";
+
+        const css = document.createElement("style");
+        css.innerHTML = `
+            #toggleModelEditingButton {
+                position: absolute;
+                top: 1rem;
+                left: 30rem;
+                pointer-events: all;
+                cursor: pointer;
+                font-size: 1.5rem;
+                color: #ffffff;
+                background-color: #8a8a8a;
+                padding: 0.4rem 0.8rem;
+                border: none;
+                border-radius: 0.5rem;
+
+                @media screen and (max-width: 768px) {
+                    font-size: 0.7rem;
+                    left: 15.2rem;
+                }
+            }
+        `;
+        document.getElementsByTagName("head")[0].appendChild(css);
+
+        toggleModelEditingButton.onclick = (e: MouseEvent) => {
+            e.stopPropagation();
+            SCENE_SETTINGS.isEditingModelMode = !SCENE_SETTINGS.isEditingModelMode;
+
+            if (SCENE_SETTINGS.isEditingModelMode) {
+                toggleModelEditingButton.style.backgroundColor = "#fc4f91";
+
+                const modelTransformButtonsContainer = document.getElementById("modelTransformButtonsContainer")!;
+                modelTransformButtonsContainer.style.display = "block";
+            } else {
+                SCENE_SETTINGS.editingImage = null;
+                toggleModelEditingButton.style.backgroundColor = "#8a8a8a";
+
+                const modelTransformButtonsContainer = document.getElementById("modelTransformButtonsContainer")!;
+                modelTransformButtonsContainer.style.display = "none";
+            }
+            this._setupModelEditing();
+        };
+        this._overlayContainerElement.appendChild(toggleModelEditingButton);
+    }
+
+    private _setupModelEditing(): void {
+        let editingModelCamera: Nullable<ArcRotateCamera> = null;
+        if (SCENE_SETTINGS.isEditingModelMode) {
+            if (editingModelCamera !== null) return;
+            editingModelCamera = new ArcRotateCamera(
+                "editingModelCamera",
+                -Math.PI * 0.5,
+                Math.PI * 0.5,
+                10,
+                new Vector3(0, this._core.atom.dimensions.height * 0.5, 0),
+                this._core.scene,
+            );
+            editingModelCamera.position = new Vector3(
+                -this._core.atom.dimensions.width * 1.75,
+                this._core.atom.dimensions.height * 2,
+                this._core.atom.dimensions.depth * 2,
+            );
+
+            // widen camera FOV on narrows screens
+            if (window.innerWidth < window.innerHeight) {
+                editingModelCamera.fov = 1.3;
+            } else {
+                editingModelCamera.fov = 1;
+            }
+
+            // prevent clipping
+            editingModelCamera.minZ = 0.1;
+
+            editingModelCamera.wheelPrecision = 100;
+
+            // camera min distance and max distance
+            editingModelCamera.lowerRadiusLimit = 2;
+            editingModelCamera.upperRadiusLimit = 20;
+
+            //  lower rotation sensitivity, higher value = less sensitive
+            editingModelCamera.angularSensibilityX = 3000;
+            editingModelCamera.angularSensibilityY = 3000;
+
+            // disable rotation using keyboard arrow key
+            editingModelCamera.keysUp = [];
+            editingModelCamera.keysDown = [];
+            editingModelCamera.keysLeft = [];
+            editingModelCamera.keysRight = [];
+
+            // disable panning
+            editingModelCamera.panningSensibility = 0;
+
+            this._core.scene.switchActiveCamera(editingModelCamera);
+            this._core.character.hide();
+            this._core.characterController.stop();
+        } else {
+            this._core.scene.switchActiveCamera(this._core.camera);
+            this._core.scene.meshes.forEach((mesh: AbstractMesh) => {
+                mesh.renderOutline = false;
+            });
+
+            this._core.character.show();
+            this._core.characterController.start();
         }
     }
 }
