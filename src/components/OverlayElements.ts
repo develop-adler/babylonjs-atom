@@ -699,7 +699,7 @@ class OverlayElements {
             editingModelCamera.wheelPrecision = 100;
 
             // camera min distance and max distance
-            editingModelCamera.lowerRadiusLimit = 2;
+            editingModelCamera.lowerRadiusLimit = 0;
             editingModelCamera.upperRadiusLimit = 20;
 
             //  lower rotation sensitivity, higher value = less sensitive
@@ -711,9 +711,6 @@ class OverlayElements {
             editingModelCamera.keysDown = [];
             editingModelCamera.keysLeft = [];
             editingModelCamera.keysRight = [];
-
-            // disable panning
-            editingModelCamera.panningSensibility = 0;
 
             this._core.scene.switchActiveCamera(editingModelCamera);
             this._core.character.hide();
