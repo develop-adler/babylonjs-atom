@@ -25,6 +25,8 @@ class Picture {
     private _pictureMaterial!: StandardMaterial;
     private _side: PictureSide;
 
+    private static readonly PICTURE_FRAME_COLOR = new Color3(0.25, 0.25, 0.25);
+
     constructor(src: string, scene: Scene, atom: Atom, side?: PictureSide) {
         this._src = src;
         this._scene = scene;
@@ -64,22 +66,12 @@ class Picture {
         const image = new Image();
         image.src = this._src;
 
-        let imgWidth = 0;
-        let imgHeight = 0;
-        let pictureFrameMeshWidth = this._atom.dimensions.width * 2.25;
-        let pictureFrameMeshHeight = this._atom.dimensions.height * 2.25;
-
-        if (this._side !== "front") {
-            pictureFrameMeshWidth = this._atom.dimensions.width;
-            pictureFrameMeshHeight = this._atom.dimensions.height;
-        }
-
         // create materials
         this._pictureFrameMaterial = new StandardMaterial(
             `pictureFrame_${this._src}_material`,
             this._scene,
         );
-        this._pictureFrameMaterial.diffuseColor = new Color3(0.25, 0.25, 0.25);
+        this._pictureFrameMaterial.diffuseColor = Picture.PICTURE_FRAME_COLOR;
 
         this._pictureMaterial = new StandardMaterial(
             `picture_${this._src}_material`,
@@ -90,12 +82,52 @@ class Picture {
         this._pictureMaterial.emissiveColor = new Color3(0.5, 0.5, 0.5); // brighten image
         this._pictureMaterial.useAlphaFromDiffuseTexture = true;
 
+        const createPictureFrameMesh = (
+            width: number,
+            height: number,
+            depth: number,
+        ) => {
+            const pictureFrameMesh = MeshBuilder.CreateBox(
+                "pictureFrame_" + this._src + "_mesh",
+                {
+                    width: width,
+                    height: height,
+                    depth: depth,
+                },
+                this._scene,
+            );
+            pictureFrameMesh.material = this._pictureFrameMaterial;
+            pictureFrameMesh.receiveShadows = true;
+            return pictureFrameMesh;
+        };
+
+        const createPictureMesh = (width: number, height: number) => {
+            const pictureMesh = MeshBuilder.CreatePlane(
+                "picture_" + this._src + "_mesh",
+                {
+                    width: width - 0.1,
+                    height: height - 0.1,
+                },
+                this._scene,
+            );
+            pictureMesh.material = this._pictureMaterial;
+            pictureMesh.receiveShadows = true;
+            return pictureMesh;
+        };
+
         // get the aspect ratio of the image and apply the ratio to the picture frame mesh
         image.onload = () => {
-            imgWidth = image.width; // Get the width
-            imgHeight = image.height; // Get the height
-
+            const imgWidth = image.width; // Get the width
+            const imgHeight = image.height; // Get the height
             const aspectRatio = imgWidth / imgHeight;
+
+            // init picture and frame width and height
+            // if the picture is on the front of the atom, then the picture frame is larger
+            // otherwise, the picture frame is smaller
+            let pictureFrameMeshWidth =
+                this._atom.dimensions.width * (this._side === "front" ? 2.25 : 1);
+            let pictureFrameMeshHeight =
+                this._atom.dimensions.height * (this._side === "front" ? 2.25 : 1);
 
             if (imgHeight > imgWidth) {
                 // if the height is greater than the width, then the image is portrait
@@ -105,38 +137,27 @@ class Picture {
                 pictureFrameMeshHeight /= aspectRatio;
             }
 
+            this._pictureFrameMesh = createPictureFrameMesh(
+                this._side === "front" ? pictureFrameMeshWidth : 0.04,
+                pictureFrameMeshHeight,
+                this._side === "front" ? 0.04 : pictureFrameMeshWidth,
+            );
+            this._pictureMesh = createPictureMesh(
+                pictureFrameMeshWidth,
+                pictureFrameMeshHeight,
+            );
+
+            this._pictureFrameMesh.receiveShadows = true;
+            this._pictureMesh.receiveShadows = true;
+
             switch (this._side) {
                 case "front":
-                    this._pictureFrameMesh = MeshBuilder.CreateBox(
-                        "pictureFrame_" + this._src + "_mesh",
-                        {
-                            width: pictureFrameMeshWidth,
-                            height: pictureFrameMeshHeight,
-                            depth: 0.02,
-                        },
-                        this._scene,
-                    );
-                    this._pictureFrameMesh.material = this._pictureFrameMaterial;
-
-                    this._pictureMesh = MeshBuilder.CreatePlane(
-                        "picture_" + this._src + "_mesh",
-                        {
-                            width: pictureFrameMeshWidth - 0.1,
-                            height: pictureFrameMeshHeight - 0.1,
-                        },
-                        this._scene,
-                    );
-                    this._pictureMesh.material = this._pictureMaterial;
-
                     // fix picture position and rotation
-                    this._pictureMesh.position.z = 0.011;
+                    this._pictureMesh.position.z = 0.022;
                     this._pictureMesh.rotation.y = Math.PI;
 
                     // attach to picture frame
                     this._pictureMesh.parent = this._pictureFrameMesh;
-
-                    this._pictureFrameMesh.receiveShadows = true;
-                    this._pictureMesh.receiveShadows = true;
 
                     // position picture frame
                     if (imgHeight > imgWidth) {
@@ -155,36 +176,12 @@ class Picture {
                     }
                     break;
                 case "leftFront":
-                    this._pictureFrameMesh = MeshBuilder.CreateBox(
-                        "pictureFrame_" + this._src + "_mesh",
-                        {
-                            width: 0.02,
-                            height: pictureFrameMeshHeight,
-                            depth: pictureFrameMeshWidth,
-                        },
-                        this._scene,
-                    );
-                    this._pictureFrameMesh.material = this._pictureFrameMaterial;
-
-                    this._pictureMesh = MeshBuilder.CreatePlane(
-                        "picture_" + this._src + "_mesh",
-                        {
-                            width: pictureFrameMeshWidth - 0.1,
-                            height: pictureFrameMeshHeight - 0.1,
-                        },
-                        this._scene,
-                    );
-                    this._pictureMesh.material = this._pictureMaterial;
-
                     // fix picture position and rotation
-                    this._pictureMesh.position.x = -0.011;
+                    this._pictureMesh.position.x = -0.022;
                     this._pictureMesh.rotation.y = Math.PI * 0.5;
 
                     // attach to picture frame
                     this._pictureMesh.parent = this._pictureFrameMesh;
-
-                    this._pictureFrameMesh.receiveShadows = true;
-                    this._pictureMesh.receiveShadows = true;
 
                     // position picture frame
                     this._pictureFrameMesh.position = new Vector3(
@@ -194,36 +191,12 @@ class Picture {
                     );
                     break;
                 case "rightFront":
-                    this._pictureFrameMesh = MeshBuilder.CreateBox(
-                        "pictureFrame_" + this._src + "_mesh",
-                        {
-                            width: 0.02,
-                            height: pictureFrameMeshHeight,
-                            depth: pictureFrameMeshWidth,
-                        },
-                        this._scene,
-                    );
-                    this._pictureFrameMesh.material = this._pictureFrameMaterial;
-
-                    this._pictureMesh = MeshBuilder.CreatePlane(
-                        "picture_" + this._src + "_mesh",
-                        {
-                            width: pictureFrameMeshWidth - 0.1,
-                            height: pictureFrameMeshHeight - 0.1,
-                        },
-                        this._scene,
-                    );
-                    this._pictureMesh.material = this._pictureMaterial;
-
                     // fix picture position and rotation
-                    this._pictureMesh.position.x = 0.011;
+                    this._pictureMesh.position.x = 0.022;
                     this._pictureMesh.rotation.y = -Math.PI * 0.5;
 
                     // attach to picture frame
                     this._pictureMesh.parent = this._pictureFrameMesh;
-
-                    this._pictureFrameMesh.receiveShadows = true;
-                    this._pictureMesh.receiveShadows = true;
 
                     // position picture frame
                     this._pictureFrameMesh.position = new Vector3(
@@ -233,36 +206,12 @@ class Picture {
                     );
                     break;
                 case "leftBack":
-                    this._pictureFrameMesh = MeshBuilder.CreateBox(
-                        "pictureFrame_" + this._src + "_mesh",
-                        {
-                            width: 0.02,
-                            height: pictureFrameMeshHeight,
-                            depth: pictureFrameMeshWidth,
-                        },
-                        this._scene,
-                    );
-                    this._pictureFrameMesh.material = this._pictureFrameMaterial;
-
-                    this._pictureMesh = MeshBuilder.CreatePlane(
-                        "picture_" + this._src + "_mesh",
-                        {
-                            width: pictureFrameMeshWidth - 0.1,
-                            height: pictureFrameMeshHeight - 0.1,
-                        },
-                        this._scene,
-                    );
-                    this._pictureMesh.material = this._pictureMaterial;
-
                     // fix picture position and rotation
-                    this._pictureMesh.position.x = -0.011;
+                    this._pictureMesh.position.x = -0.022;
                     this._pictureMesh.rotation.y = Math.PI * 0.5;
 
                     // attach to picture frame
                     this._pictureMesh.parent = this._pictureFrameMesh;
-
-                    this._pictureFrameMesh.receiveShadows = true;
-                    this._pictureMesh.receiveShadows = true;
 
                     // position picture frame
                     this._pictureFrameMesh.position = new Vector3(
@@ -272,36 +221,12 @@ class Picture {
                     );
                     break;
                 case "rightBack":
-                    this._pictureFrameMesh = MeshBuilder.CreateBox(
-                        "pictureFrame_" + this._src + "_mesh",
-                        {
-                            width: 0.02,
-                            height: pictureFrameMeshHeight,
-                            depth: pictureFrameMeshWidth,
-                        },
-                        this._scene,
-                    );
-                    this._pictureFrameMesh.material = this._pictureFrameMaterial;
-
-                    this._pictureMesh = MeshBuilder.CreatePlane(
-                        "picture_" + this._src + "_mesh",
-                        {
-                            width: pictureFrameMeshWidth - 0.1,
-                            height: pictureFrameMeshHeight - 0.1,
-                        },
-                        this._scene,
-                    );
-                    this._pictureMesh.material = this._pictureMaterial;
-
                     // fix picture position and rotation
-                    this._pictureMesh.position.x = 0.011;
+                    this._pictureMesh.position.x = 0.022;
                     this._pictureMesh.rotation.y = -Math.PI * 0.5;
 
                     // attach to picture frame
                     this._pictureMesh.parent = this._pictureFrameMesh;
-
-                    this._pictureFrameMesh.receiveShadows = true;
-                    this._pictureMesh.receiveShadows = true;
 
                     // position picture frame
                     this._pictureFrameMesh.position = new Vector3(
@@ -322,7 +247,10 @@ class Picture {
             actionManager.registerAction(
                 new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
                     // change cursor to pointer on hover
-                    if (!SCENE_SETTINGS.isEditingPictureMode) return;
+                    if (!SCENE_SETTINGS.isEditingPictureMode) {
+                        this._scene.hoverCursor = "default";
+                        return;
+                    }
                     this._scene.hoverCursor = "pointer";
                     this._pictureFrameMaterial.diffuseColor = Color3.Yellow();
                     this._pictureFrameMaterial.emissiveColor = Color3.Yellow();
@@ -333,11 +261,7 @@ class Picture {
                     // change cursor to default on hover out
                     if (!SCENE_SETTINGS.isEditingPictureMode) return;
                     this._scene.hoverCursor = "default";
-                    this._pictureFrameMaterial.diffuseColor = new Color3(
-                        0.25,
-                        0.25,
-                        0.25,
-                    );
+                    this._pictureFrameMaterial.diffuseColor = Picture.PICTURE_FRAME_COLOR;
                     this._pictureFrameMaterial.emissiveColor = Color3.Black();
                 }),
             );
@@ -366,9 +290,8 @@ class Picture {
                 SCENE_SETTINGS.imageUploadInputField.click();
 
                 const editingImageSide = document.getElementById("editingImageSide")!;
-                editingImageSide.innerHTML = `Editing image: ${
-                    pictureSideMap[SCENE_SETTINGS.editingImage] ?? "None"
-                }`;
+                editingImageSide.innerHTML = `Editing image: ${pictureSideMap[SCENE_SETTINGS.editingImage] ?? "None"
+                    }`;
                 return;
             }
         }
