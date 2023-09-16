@@ -12,17 +12,18 @@ class OverlayElements {
 
     private _appElement: HTMLElement;
     private _overlayContainerElement!: HTMLDivElement;
+    private _buttonContainerElement!: HTMLDivElement;
+    private _controlSwitchElement!: HTMLDivElement;
 
     constructor(core: Core) {
         this._core = core;
         this._appElement = document.getElementById("app")!;
 
         this._createOverlayContainer();
+        this._createButtonContainer();
         this._createControlSwitchElement();
-        this._createModelUploadButton();
-        this._createModelTransformButtons();
-        this._createToggleImageUploadButton();
-        this._createToggleModelEditingButton();
+        this._createToggleImageEditingButton();
+        this._createModelEditingUI();
     }
 
     private _createOverlayContainer(): void {
@@ -45,9 +46,29 @@ class OverlayElements {
         this._appElement.appendChild(this._overlayContainerElement);
     }
 
+    private _createButtonContainer(): void {
+        this._buttonContainerElement = document.createElement("div");
+        this._buttonContainerElement.id = "buttonContainer";
+        const css = document.createElement("style");
+        css.innerHTML = `
+            #buttonContainer {
+                display: flex;
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 5%;
+                padding: 1rem 1rem;
+                pointer-events: none;
+            }
+        `;
+        document.getElementsByTagName("head")[0].appendChild(css);
+        this._overlayContainerElement.appendChild(this._buttonContainerElement);
+    }
+
     private _createControlSwitchElement(): void {
-        const controlSwitchElement = document.createElement("div");
-        controlSwitchElement.id = "controlSwitch";
+        this._controlSwitchElement = document.createElement("div");
+        this._controlSwitchElement.id = "controlSwitch";
         const css = document.createElement("style");
         css.innerHTML = `
             #controlSwitch {
@@ -126,8 +147,8 @@ class OverlayElements {
         toggleLabel.id = "toggle";
         toggleLabel.htmlFor = "toggleInput";
 
-        controlSwitchElement.appendChild(toggleInput);
-        controlSwitchElement.appendChild(toggleLabel);
+        this._controlSwitchElement.appendChild(toggleInput);
+        this._controlSwitchElement.appendChild(toggleLabel);
 
         toggleLabel.onclick = (e: MouseEvent) => {
             if (
@@ -147,64 +168,12 @@ class OverlayElements {
             }
         };
 
-        this._overlayContainerElement.appendChild(controlSwitchElement);
+        this._overlayContainerElement.appendChild(this._controlSwitchElement);
     }
 
-    private _createModelUploadButton(): void {
-        const modelUploadInputButton = document.createElement("button");
-        modelUploadInputButton.id = "modelUploadInputButton";
-        modelUploadInputButton.innerHTML = "Upload Model";
-
-        const modelUploadInputField = document.createElement("input");
-        modelUploadInputField.id = "modelUploadInputField";
-        modelUploadInputField.type = "file";
-        modelUploadInputField.accept = ".glb, .gltf";
-        modelUploadInputField.multiple = true;
-        const css = document.createElement("style");
-        css.innerHTML = `
-            #modelUploadInputButton {
-                position: absolute;
-                top: 1rem;
-                left: 1rem;
-                pointer-events: all;
-                cursor: pointer;
-                font-size: 1.5rem;
-                color: #ffffff;
-                background-color: #FC4F91;
-                padding: 0.4rem 0.8rem;
-                border: none;
-                border-radius: 0.5rem;
-
-                @media screen and (max-width: 768px) {
-                    font-size: 0.7rem;
-                }
-            }
-            #modelUploadInputField {
-                display: none;
-            }
-        `;
-        document.getElementsByTagName("head")[0].appendChild(css);
-
-        modelUploadInputButton.appendChild(modelUploadInputField);
-
-        modelUploadInputButton.onclick = (e: MouseEvent) => {
-            e.stopPropagation();
-            modelUploadInputField.click();
-        };
-
-        // read file
-        modelUploadInputField.onchange = async (e: Event) => {
-            e.stopPropagation();
-            const target = e.target as HTMLInputElement;
-            const file = (target.files as FileList)[0];
-
-            // Reset the input field to allow uploading the same file again
-            target.value = "";
-
-            this._core._loadModelFromFile(file);
-        };
-
-        this._overlayContainerElement.appendChild(modelUploadInputButton);
+    private _createModelEditingUI(): void {
+        this._createToggleModelEditingButton();
+        this._createModelTransformButtons();
     }
 
     private _createModelTransformButtons(): void {
@@ -397,7 +366,134 @@ class OverlayElements {
         this._overlayContainerElement.appendChild(modelTransformButtonsContainer);
     }
 
-    private _createToggleImageUploadButton(): void {
+    private _createToggleModelEditingButton(): void {
+        const toggleModelEditingButton = document.createElement("button");
+        toggleModelEditingButton.id = "toggleModelEditingButton";
+        toggleModelEditingButton.innerHTML = "Toggle Model Editing";
+
+        const css = document.createElement("style");
+        css.innerHTML = `
+            #toggleModelEditingButton {
+                /*position: absolute;
+                top: 1rem;
+                left: 30rem;*/
+                margin-right: 0.6rem;
+                pointer-events: all;
+                cursor: pointer;
+                font-size: 1.5rem;
+                color: #ffffff;
+                background-color: #8a8a8a;
+                padding: 0.4rem 0.8rem;
+                border: none;
+                border-radius: 0.5rem;
+
+                @media screen and (max-width: 768px) {
+                    font-size: 0.7rem;
+                    left: 15.2rem;
+                }
+            }
+        `;
+        document.getElementsByTagName("head")[0].appendChild(css);
+
+        toggleModelEditingButton.onclick = (e: MouseEvent) => {
+            e.stopPropagation();
+            SCENE_SETTINGS.isEditingModelMode = !SCENE_SETTINGS.isEditingModelMode;
+
+            if (SCENE_SETTINGS.isEditingModelMode) {
+                toggleModelEditingButton.style.backgroundColor = "#fc4f91";
+
+                const modelTransformButtonsContainer = document.getElementById(
+                    "modelTransformButtonsContainer",
+                )!;
+                modelTransformButtonsContainer.style.display = "block";
+
+                const modelUploadInputButton = document.getElementById(
+                    "modelUploadInputButton",
+                )!;
+                modelUploadInputButton.style.display = "block";
+
+                this._controlSwitchElement.style.display = "none";
+            } else {
+                SCENE_SETTINGS.editingImage = null;
+                toggleModelEditingButton.style.backgroundColor = "#8a8a8a";
+
+                const modelTransformButtonsContainer = document.getElementById(
+                    "modelTransformButtonsContainer",
+                )!;
+                modelTransformButtonsContainer.style.display = "none";
+
+                const modelUploadInputButton = document.getElementById(
+                    "modelUploadInputButton",
+                )!;
+                modelUploadInputButton.style.display = "none";
+
+                this._controlSwitchElement.style.display = "block";
+
+                this._core.gizmoManager.attachToMesh(null);
+            }
+            this._setupModelEditing();
+        };
+        this._buttonContainerElement.appendChild(toggleModelEditingButton);
+
+        this._createModelUploadButton();
+    }
+
+    private _createModelUploadButton(): void {
+        const modelUploadInputButton = document.createElement("button");
+        modelUploadInputButton.id = "modelUploadInputButton";
+        modelUploadInputButton.innerHTML = "Upload Model";
+
+        const modelUploadInputField = document.createElement("input");
+        modelUploadInputField.id = "modelUploadInputField";
+        modelUploadInputField.type = "file";
+        modelUploadInputField.accept = ".glb, .gltf";
+        modelUploadInputField.multiple = true;
+        const css = document.createElement("style");
+        css.innerHTML = `
+            #modelUploadInputButton {
+                display: none;
+                pointer-events: all;
+                cursor: pointer;
+                font-size: 1.5rem;
+                color: #ffffff;
+                background-color: #FC4F91;
+                padding: 0.4rem 0.8rem;
+                border: none;
+                border-radius: 0.5rem;
+
+                @media screen and (max-width: 768px) {
+                    font-size: 0.7rem;
+                }
+            }
+            #modelUploadInputField {
+                display: none;
+            }
+        `;
+        document.getElementsByTagName("head")[0].appendChild(css);
+
+        modelUploadInputButton.appendChild(modelUploadInputField);
+
+        modelUploadInputButton.onclick = (e: MouseEvent) => {
+            e.stopPropagation();
+            modelUploadInputField.click();
+        };
+
+        // read file
+        modelUploadInputField.onchange = async (e: Event) => {
+            e.stopPropagation();
+            const target = e.target as HTMLInputElement;
+            const file = (target.files as FileList)[0];
+
+            // Reset the input field to allow uploading the same file again
+            target.value = "";
+
+            this._core._loadModelFromFile(file);
+        };
+
+        this._buttonContainerElement.appendChild(modelUploadInputButton);
+    }
+
+    private _createToggleImageEditingButton(): void {
         const toggleImageEditingButton = document.createElement("button");
         toggleImageEditingButton.id = "toggleImageEditingButton";
         toggleImageEditingButton.innerHTML = "Toggle Image Editing";
@@ -405,9 +501,10 @@ class OverlayElements {
         const css = document.createElement("style");
         css.innerHTML = `
             #toggleImageEditingButton {
-                position: absolute;
+                /*position: absolute;
                 top: 1rem;
-                left: 13rem;
+                left: 13rem;*/
+                margin-right: 0.6rem;
                 pointer-events: all;
                 cursor: pointer;
                 font-size: 1.5rem;
@@ -436,15 +533,19 @@ class OverlayElements {
             if (SCENE_SETTINGS.isEditingPictureMode) {
                 toggleImageEditingButton.style.backgroundColor = "#fc4f91";
                 uploadImageGuideText.style.display = "block";
+
+                this._controlSwitchElement.style.display = "none";
             } else {
                 SCENE_SETTINGS.editingImage = null;
                 toggleImageEditingButton.style.backgroundColor = "#8a8a8a";
                 uploadImageGuideText.style.display = "none";
+
+                this._controlSwitchElement.style.display = "block";
             }
 
             this._setupImageUpload();
         };
-        this._overlayContainerElement.appendChild(toggleImageEditingButton);
+        this._buttonContainerElement.appendChild(toggleImageEditingButton);
 
         this._createUploadImageButton();
     }
@@ -565,59 +666,6 @@ class OverlayElements {
             this._core.character.show();
             this._core.characterController.start();
         }
-    }
-
-    private _createToggleModelEditingButton(): void {
-        const toggleModelEditingButton = document.createElement("button");
-        toggleModelEditingButton.id = "toggleModelEditingButton";
-        toggleModelEditingButton.innerHTML = "Toggle Model Editing";
-
-        const css = document.createElement("style");
-        css.innerHTML = `
-            #toggleModelEditingButton {
-                position: absolute;
-                top: 1rem;
-                left: 30rem;
-                pointer-events: all;
-                cursor: pointer;
-                font-size: 1.5rem;
-                color: #ffffff;
-                background-color: #8a8a8a;
-                padding: 0.4rem 0.8rem;
-                border: none;
-                border-radius: 0.5rem;
-
-                @media screen and (max-width: 768px) {
-                    font-size: 0.7rem;
-                    left: 15.2rem;
-                }
-            }
-        `;
-        document.getElementsByTagName("head")[0].appendChild(css);
-
-        toggleModelEditingButton.onclick = (e: MouseEvent) => {
-            e.stopPropagation();
-            SCENE_SETTINGS.isEditingModelMode = !SCENE_SETTINGS.isEditingModelMode;
-
-            if (SCENE_SETTINGS.isEditingModelMode) {
-                toggleModelEditingButton.style.backgroundColor = "#fc4f91";
-
-                const modelTransformButtonsContainer = document.getElementById(
-                    "modelTransformButtonsContainer",
-                )!;
-                modelTransformButtonsContainer.style.display = "block";
-            } else {
-                SCENE_SETTINGS.editingImage = null;
-                toggleModelEditingButton.style.backgroundColor = "#8a8a8a";
-
-                const modelTransformButtonsContainer = document.getElementById(
-                    "modelTransformButtonsContainer",
-                )!;
-                modelTransformButtonsContainer.style.display = "none";
-            }
-            this._setupModelEditing();
-        };
-        this._overlayContainerElement.appendChild(toggleModelEditingButton);
     }
 
     private _setupModelEditing(): void {
