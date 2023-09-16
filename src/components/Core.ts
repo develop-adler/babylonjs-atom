@@ -461,7 +461,7 @@ class Core {
                     animation.stop();
                 });
 
-                // enable shadows and collisions
+                // enable shadows
                 if (this._shadowGenerators.length) {
                     this._shadowGenerators?.forEach(generator => {
                         meshes.forEach(mesh => {
