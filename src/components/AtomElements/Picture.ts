@@ -317,14 +317,6 @@ class Picture {
                 this._pictureMesh,
             ]);
 
-            const pictureSideMap = {
-                front: "Front",
-                leftFront: "Left Front",
-                rightFront: "Right Front",
-                leftBack: "Left Back",
-                rightBack: "Right Back",
-            };
-
             // on hover event for picture
             const actionManager = new ActionManager(this._scene);
             actionManager.registerAction(
@@ -352,31 +344,39 @@ class Picture {
             this._pictureMesh.actionManager = actionManager;
 
             // on click event for picture in editing mode
-            this._scene.onPointerObservable.add((pointerInfo: PointerInfo) => {
-                switch (pointerInfo.type) {
-                    case PointerEventTypes.POINTERPICK:
-                        if (!SCENE_SETTINGS.isEditingPictureMode) return;
-                        if (!pointerInfo?.pickInfo?.hit) return;
-
-                        if (
-                            pointerInfo?.pickInfo.pickedMesh?.name === this._pictureMesh.name
-                        ) {
-                            SCENE_SETTINGS.editingImage = this._side;
-                            SCENE_SETTINGS.imageUploadInputField.click();
-
-                            const editingImageSide =
-                                document.getElementById("editingImageSide")!;
-                            editingImageSide.innerHTML = `Editing image: ${pictureSideMap[SCENE_SETTINGS.editingImage] ?? "None"
-                                }`;
-                            return;
-                        }
-                        break;
-                }
-            });
+            this._scene.onPointerObservable.add(this._handleClickObject);
         };
     }
 
+    private _handleClickObject = (pointerInfo: PointerInfo): void => {
+        const pictureSideMap = {
+            front: "Front",
+            leftFront: "Left Front",
+            rightFront: "Right Front",
+            leftBack: "Left Back",
+            rightBack: "Right Back",
+        };
+
+        if (pointerInfo.type === PointerEventTypes.POINTERPICK) {
+            if (!SCENE_SETTINGS.isEditingPictureMode) return;
+            if (!pointerInfo?.pickInfo?.hit) return;
+
+            if (pointerInfo?.pickInfo.pickedMesh?.name === this._pictureMesh.name) {
+                SCENE_SETTINGS.editingImage = this._side;
+                SCENE_SETTINGS.imageUploadInputField.click();
+
+                const editingImageSide = document.getElementById("editingImageSide")!;
+                editingImageSide.innerHTML = `Editing image: ${
+                    pictureSideMap[SCENE_SETTINGS.editingImage] ?? "None"
+                }`;
+                return;
+            }
+        }
+    };
+
     public dispose(): void {
+        this._scene.onPointerObservable.removeCallback(this._handleClickObject);
+
         this._scene.removeMesh(this._pictureFrameMesh);
         this._scene.removeMesh(this._pictureMesh);
         this._scene.removeTexture(this._texture);
