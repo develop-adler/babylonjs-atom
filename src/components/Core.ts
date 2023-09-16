@@ -20,6 +20,20 @@ import { isMobile } from "../utils/functions";
 // using CDN in index.html
 declare function HavokPhysics(): any;
 
+const showOutline = (meshes: BABYLON.AbstractMesh[]) => {
+    meshes.forEach(mesh => {
+        mesh.renderOutline = true;
+    });
+};
+
+const hideAllOutlines = () => {
+    SCENE_SETTINGS.importedMeshGroups.forEach(parentMesh => {
+        parentMesh.getChildMeshes().forEach(mesh => {
+            mesh.renderOutline = false;
+        });
+    });
+};
+
 class Core {
     private _canvas: HTMLCanvasElement;
     private _engine: BABYLON.Engine;
@@ -101,7 +115,7 @@ class Core {
                 this._characterController = new CharacterController(
                     this._character.root as BABYLON.Mesh,
                     this._character.physicsBody,
-                    this._camera as BABYLON.ArcRotateCamera,
+                    this._camera,
                     this._scene,
                     this._joystick,
                 );
@@ -189,21 +203,87 @@ class Core {
         this._scene.enablePhysics(gravityVector, havokPlugin);
 
         this._scene.collisionsEnabled = true;
+
+        // hover object in editing model mode
+        this._scene.onPointerMove = () => {
+            if (!SCENE_SETTINGS.isEditingModelMode || SCENE_SETTINGS.hasModelSelected)
+                return;
+
+            const pickResult = this._scene.pick(
+                this._scene.pointerX,
+                this._scene.pointerY,
+            );
+
+            if (!pickResult.hit) return;
+            if (!pickResult.pickedMesh) return;
+
+            if (
+                pickResult.pickedMesh.parent &&
+                SCENE_SETTINGS.importedMeshGroups.has(pickResult.pickedMesh.parent.name)
+            ) {
+                showOutline(pickResult.pickedMesh.parent.getChildMeshes());
+                SCENE_SETTINGS.hoveredMeshParentName =
+                    pickResult.pickedMesh.parent.name;
+            } else if (SCENE_SETTINGS.hoveredMeshParentName !== "") {
+                SCENE_SETTINGS.importedMeshGroups
+                    .get(SCENE_SETTINGS.hoveredMeshParentName)!
+                    .getChildMeshes()
+                    .forEach(mesh => {
+                        mesh.renderOutline = false;
+                    });
+                SCENE_SETTINGS.hoveredMeshParentName = "";
+            }
+        };
+
+        // click object in editing model mode
+        this._scene.onPointerPick = () => {
+            if (!SCENE_SETTINGS.isEditingModelMode) return;
+
+            const pickResult = this._scene.pick(
+                this._scene.pointerX,
+                this._scene.pointerY,
+            );
+
+            if (!pickResult.hit) return;
+            if (!pickResult.pickedMesh) return;
+
+            hideAllOutlines();
+
+            if (
+                pickResult.pickedMesh.parent &&
+                SCENE_SETTINGS.importedMeshGroups.has(pickResult.pickedMesh.parent.name)
+            ) {
+                // object is selected
+                SCENE_SETTINGS.hasModelSelected = true;
+                showOutline(pickResult.pickedMesh.parent.getChildMeshes());
+                this._gizmoManager.attachToMesh(
+                    pickResult.pickedMesh.parent as BABYLON.AbstractMesh,
+                );
+                SCENE_SETTINGS.selectedMeshParentName =
+                    pickResult.pickedMesh.parent.name;
+            } else if (SCENE_SETTINGS.selectedMeshParentName !== "") {
+                // object unselected
+                SCENE_SETTINGS.hasModelSelected = false;
+                this._gizmoManager.attachToMesh(null);
+            }
+        };
     }
 
     private _initGizmoManager(): void {
         this._gizmoManager.positionGizmoEnabled = true;
         this._gizmoManager.rotationGizmoEnabled = true;
         this._gizmoManager.scaleGizmoEnabled = true;
-        
+
         // use world orientation for gizmos
-        this._gizmoManager.gizmos.positionGizmo!.updateGizmoRotationToMatchAttachedMesh = false;
-        this._gizmoManager.gizmos.rotationGizmo!.updateGizmoRotationToMatchAttachedMesh = false;
-        this._gizmoManager.gizmos.scaleGizmo!.updateGizmoRotationToMatchAttachedMesh = false;
+        this._gizmoManager.gizmos.positionGizmo!.updateGizmoRotationToMatchAttachedMesh =
+            false;
+        this._gizmoManager.gizmos.rotationGizmo!.updateGizmoRotationToMatchAttachedMesh =
+            false;
 
         // disable y axis for position and rotation gizmo
         this._gizmoManager.gizmos.positionGizmo!.yGizmo.isEnabled = false;
-        this._gizmoManager.gizmos.rotationGizmo!.yGizmo.isEnabled = false;
+        this._gizmoManager.gizmos.rotationGizmo!.xGizmo.isEnabled = false;
+        this._gizmoManager.gizmos.rotationGizmo!.zGizmo.isEnabled = false;
 
         // enable only position gizmo by default
         this._gizmoManager.rotationGizmoEnabled = false;
@@ -213,13 +293,6 @@ class Core {
         // disable pointer to attach gizmos
         this._gizmoManager.usePointerToAttachGizmos = false;
         this._gizmoManager.attachableMeshes = []; // don't allow any mesh to be attached
-
-        this._gizmoManager.gizmos.positionGizmo?.xGizmo.dragBehavior.onDragStartObservable.add(() => {
-            console.log("Position gizmo's x axis started to be dragged");
-        });
-        this._gizmoManager.gizmos.positionGizmo?.xGizmo.dragBehavior.onDragEndObservable.add(() => {
-            console.log("Position gizmo's x axis drag was ended");
-        });
     }
 
     private _initCamera(): void {
@@ -312,7 +385,7 @@ class Core {
                     this._characterController = new CharacterController(
                         this._character.root as BABYLON.Mesh,
                         this._character.physicsBody,
-                        this._camera as BABYLON.ArcRotateCamera,
+                        this._camera,
                         this._scene,
                         this._joystick,
                     );
@@ -327,7 +400,7 @@ class Core {
                 this._characterController = new CharacterController(
                     this._character.root as BABYLON.Mesh,
                     this._character.physicsBody,
-                    this._camera as BABYLON.ArcRotateCamera,
+                    this._camera,
                     this._scene,
                     this._joystick,
                 );
@@ -340,7 +413,7 @@ class Core {
             this._characterController = new CharacterController(
                 this._character.root as BABYLON.Mesh,
                 this._character.physicsBody,
-                this._camera as BABYLON.ArcRotateCamera,
+                this._camera,
                 this._scene,
                 this._joystick,
             );
@@ -357,7 +430,37 @@ class Core {
             "",
             file,
             this._scene,
-            meshes => {
+            (meshes, _particleSystems, _skeleton, animationGroups) => {
+                // mesh naming convention: filename + _ + number
+                // get file name, remove extension
+                let filename = file.name.replace(".glb", "").replace(".gltf", "");
+
+                // if there's a mesh with the same name, add a number to the end of the name
+                if (SCENE_SETTINGS.importedMeshGroups.has(file.name)) {
+                    let i = 1;
+                    while (SCENE_SETTINGS.importedMeshGroups.has(filename)) {
+                        filename = `${file.name.split(".")[0]}_${i}.${file.name.split(".")[1]
+                            }`;
+                        i++;
+                    }
+                }
+
+                // add meshes to a parent node and assign to imported mesh map
+                const parent = new BABYLON.Mesh(filename, this._scene);
+                meshes.forEach(mesh => {
+                    mesh.outlineColor = BABYLON.Color3.Green();
+                    mesh.outlineWidth = 0.05;
+                    mesh.parent = parent;
+                    SCENE_SETTINGS.importedMeshesMap.set(mesh.uniqueId, mesh);
+                });
+
+                SCENE_SETTINGS.importedMeshGroups.set(filename, parent);
+
+                // don't play animations
+                animationGroups.forEach(animation => {
+                    animation.stop();
+                });
+
                 // enable shadows and collisions
                 if (this._shadowGenerators.length) {
                     this._shadowGenerators?.forEach(generator => {
@@ -370,70 +473,6 @@ class Core {
 
                 // add meshes to reflection list
                 this._atom.addMeshesToReflectionList(meshes as BABYLON.Mesh[]);
-
-                // create a record of <uniqueId, mesh> for each mesh
-                // also set outline settings for each mesh
-                const meshesMap = new Map<number, BABYLON.AbstractMesh>();
-                meshes.forEach(mesh => {
-                    meshesMap.set(mesh.uniqueId, mesh);
-                    mesh.outlineWidth = 0.05;
-                    mesh.outlineColor = BABYLON.Color3.Green();
-                });
-
-                const showOutline = () => {
-                    meshes.forEach(mesh => {
-                        mesh.renderOutline = true;
-                    });
-                };
-
-                const hideOutline = () => {
-                    meshes.forEach(mesh => {
-                        mesh.renderOutline = false;
-                    });
-                };
-
-                // hover over object
-                this._scene.onPointerMove = () => {
-                    if (!SCENE_SETTINGS.isEditingModelMode || SCENE_SETTINGS.hasModelSelected) return;
-
-                    const pickResult = this._scene.pick(
-                        this._scene.pointerX,
-                        this._scene.pointerY,
-                    );
-
-                    if (pickResult.hit) {
-                        if (meshesMap.get(pickResult.pickedMesh!.uniqueId)) {
-                            showOutline();
-                        } else {
-                            hideOutline();
-                        }
-                    }
-                };
-
-                // click on object
-                this._scene.onPointerPick = () => {
-                    if (!SCENE_SETTINGS.isEditingModelMode) return;
-
-                    const pickResult = this._scene.pick(
-                        this._scene.pointerX,
-                        this._scene.pointerY,
-                    );
-
-                    if (pickResult.hit) {
-                        if (meshesMap.get(pickResult.pickedMesh!.uniqueId)) {
-                            // object gets selected
-                            showOutline();
-                            SCENE_SETTINGS.hasModelSelected = true;
-                            // add mesh to gizmo manager attachable meshes
-                            this._gizmoManager.attachToMesh(pickResult.pickedMesh!);
-                        } else {
-                            // object is not selected
-                            hideOutline();
-                            SCENE_SETTINGS.hasModelSelected = false;
-                            this._gizmoManager.attachToMesh(null);
-                        }
-                    }
-                };
             },
             null, // onProgress
             (_, message, exception) => {
@@ -453,6 +492,24 @@ class Core {
                             this._scene.debugLayer.hide();
                         } else {
                             this._scene.debugLayer.show();
+                        }
+                        break;
+                    case "delete":
+                        const { importedMeshGroups, selectedMeshParentName } =
+                            SCENE_SETTINGS;
+                        if (selectedMeshParentName !== "") {
+                            importedMeshGroups
+                                .get(selectedMeshParentName)!
+                                .getChildMeshes()
+                                .forEach(mesh => {
+                                    this._scene.removeMesh(mesh);
+                                    mesh.material?.dispose();
+                                    mesh.dispose();
+                                });
+
+                            SCENE_SETTINGS.hasModelSelected = false;
+                            SCENE_SETTINGS.selectedMeshParentName = "";
+                            this._gizmoManager.attachToMesh(null);
                         }
                         break;
                     // case "1":
@@ -514,17 +571,6 @@ class Core {
         dirLight.shadowMaxZ = 60;
 
         // this.createLightGizmo(dirLight);
-
-        // const spotLight = new BABYLON.SpotLight(
-        //     "spotLight",
-        //     new BABYLON.Vector3(-3, 60, -5),
-        //     new BABYLON.Vector3(6.5, -20, -5),
-        //     Math.PI / 4,
-        //     1,
-        //     this._scene,
-        // );
-
-        // this.createLightGizmo(spotLight);
 
         // Shadows
         const shadowGenerator = new BABYLON.ShadowGenerator(2048, dirLight);
