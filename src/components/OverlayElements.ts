@@ -413,8 +413,11 @@ class OverlayElements {
                 modelUploadInputButton.style.display = "block";
 
                 this._controlSwitchElement.style.display = "none";
+                this._core.joystick.hide();
             } else {
                 SCENE_SETTINGS.editingImage = null;
+                this._core.gizmoManager.attachToMesh(null);
+
                 toggleModelEditingButton.style.backgroundColor = "#8a8a8a";
 
                 const modelTransformButtonsContainer = document.getElementById(
@@ -428,8 +431,7 @@ class OverlayElements {
                 modelUploadInputButton.style.display = "none";
 
                 this._controlSwitchElement.style.display = "block";
-
-                this._core.gizmoManager.attachToMesh(null);
+                this._core.joystick.show();
             }
             this._setupModelEditing();
         };
@@ -535,12 +537,14 @@ class OverlayElements {
                 uploadImageGuideText.style.display = "block";
 
                 this._controlSwitchElement.style.display = "none";
+                this._core.joystick.hide();
             } else {
                 SCENE_SETTINGS.editingImage = null;
                 toggleImageEditingButton.style.backgroundColor = "#8a8a8a";
                 uploadImageGuideText.style.display = "none";
 
                 this._controlSwitchElement.style.display = "block";
+                this._core.joystick.show();
             }
 
             this._setupImageUpload();

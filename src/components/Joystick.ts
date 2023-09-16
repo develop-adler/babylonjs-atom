@@ -8,10 +8,11 @@ class Joystick {
     private manager: JoystickManager;
     private event: EventData;
     private data: JoystickOutputData;
+    private _joystickContainer!: HTMLElement;
 
     constructor() {
-        const joystickContainer = document.createElement("div");
-        joystickContainer.id = "joystick";
+        this._joystickContainer = document.createElement("div");
+        this._joystickContainer.id = "joystick";
         const joystickCSS = document.createElement("style");
         joystickCSS.innerHTML = `
             #joystick {
@@ -29,7 +30,7 @@ class Joystick {
             }
         `;
         document.getElementsByTagName("head")[0].appendChild(joystickCSS);
-        document.getElementById("app")!.appendChild(joystickContainer);
+        document.getElementById("app")!.appendChild(this._joystickContainer);
 
         this.manager = nipplejs.create({
             zone: document.querySelector("#joystick") as HTMLElement,
@@ -55,6 +56,12 @@ class Joystick {
     }
     public setData(data: JoystickOutputData): void {
         this.data = data;
+    }
+    public show(): void {
+        this._joystickContainer.style.display = "block";
+    }
+    public hide(): void {
+        this._joystickContainer.style.display = "none";
     }
 
     public dispose(): void {
