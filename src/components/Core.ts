@@ -40,17 +40,31 @@ const deleteImportedMesh = (
 ) => {
     const { importedMeshGroups, selectedMeshParentName } = SCENE_SETTINGS;
     if (selectedMeshParentName !== "") {
+        // dispose meshes
         importedMeshGroups
             .get(selectedMeshParentName)!
             .getChildMeshes()
             .forEach(mesh => {
+                SCENE_SETTINGS.importedMeshesMap.delete(mesh.uniqueId);
                 scene.removeMesh(mesh);
                 mesh.material?.dispose();
                 mesh.dispose();
             });
 
+        // dispose parent mesh
+        const parentMesh = importedMeshGroups.get(selectedMeshParentName);
+        if (parentMesh) {
+            scene.removeMesh(parentMesh);
+            parentMesh.material?.dispose();
+            parentMesh.dispose();
+        }
+        parentMesh?.dispose();
+        SCENE_SETTINGS.importedMeshGroups.delete(selectedMeshParentName);
+
+        // reset values
         SCENE_SETTINGS.hasModelSelected = false;
         SCENE_SETTINGS.selectedMeshParentName = "";
+        SCENE_SETTINGS.hoveredMeshParentName = "";
         gizmoManager.attachToMesh(null);
     }
 };
@@ -258,45 +272,40 @@ class Core {
 
         // click object in editing model mode
         this._scene.onPointerPick = (e: BABYLON.IPointerEvent) => {
-            switch (e.button) {
-                // left click
-                case 0:
-                    // listen when in editing model mode
-                    if (!SCENE_SETTINGS.isEditingModelMode) return;
+            // left click
+            if (e.button === 0) {
+                // listen when in editing model mode
+                if (!SCENE_SETTINGS.isEditingModelMode) return;
 
-                    const pickResult = this._scene.pick(
-                        this._scene.pointerX,
-                        this._scene.pointerY,
+                const pickResult = this._scene.pick(
+                    this._scene.pointerX,
+                    this._scene.pointerY,
+                );
+
+                if (!pickResult.hit) return;
+                if (!pickResult.pickedMesh) return;
+
+                hideAllOutlines();
+
+                if (
+                    pickResult.pickedMesh.parent &&
+                    SCENE_SETTINGS.importedMeshGroups.has(
+                        pickResult.pickedMesh.parent.name,
+                    )
+                ) {
+                    // object is selected
+                    SCENE_SETTINGS.hasModelSelected = true;
+                    showOutline(pickResult.pickedMesh.parent.getChildMeshes());
+                    this._gizmoManager.attachToMesh(
+                        pickResult.pickedMesh.parent as BABYLON.AbstractMesh,
                     );
-
-                    if (!pickResult.hit) return;
-                    if (!pickResult.pickedMesh) return;
-
-                    hideAllOutlines();
-
-                    if (
-                        pickResult.pickedMesh.parent &&
-                        SCENE_SETTINGS.importedMeshGroups.has(
-                            pickResult.pickedMesh.parent.name,
-                        )
-                    ) {
-                        // object is selected
-                        SCENE_SETTINGS.hasModelSelected = true;
-                        showOutline(pickResult.pickedMesh.parent.getChildMeshes());
-                        this._gizmoManager.attachToMesh(
-                            pickResult.pickedMesh.parent as BABYLON.AbstractMesh,
-                        );
-                        SCENE_SETTINGS.selectedMeshParentName =
-                            pickResult.pickedMesh.parent.name;
-                    } else if (SCENE_SETTINGS.selectedMeshParentName !== "") {
-                        // object unselected
-                        SCENE_SETTINGS.hasModelSelected = false;
-                        this._gizmoManager.attachToMesh(null);
-                    }
-                    break;
-                // right click
-                // case 2:
-                //     break;
+                    SCENE_SETTINGS.selectedMeshParentName =
+                        pickResult.pickedMesh.parent.name;
+                } else if (SCENE_SETTINGS.selectedMeshParentName !== "") {
+                    // object unselected
+                    SCENE_SETTINGS.hasModelSelected = false;
+                    this._gizmoManager.attachToMesh(null);
+                }
             }
         };
     }
