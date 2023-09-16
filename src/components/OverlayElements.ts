@@ -397,6 +397,12 @@ class OverlayElements {
 
         toggleModelEditingButton.onclick = (e: MouseEvent) => {
             e.stopPropagation();
+
+            if (SCENE_SETTINGS.isEditingPictureMode) {
+                window.alert("Please turn off picture editing mode first!");
+                return;
+            }
+
             SCENE_SETTINGS.isEditingModelMode = !SCENE_SETTINGS.isEditingModelMode;
 
             if (SCENE_SETTINGS.isEditingModelMode) {
@@ -526,6 +532,12 @@ class OverlayElements {
 
         toggleImageEditingButton.onclick = (e: MouseEvent) => {
             e.stopPropagation();
+
+            if (SCENE_SETTINGS.isEditingModelMode) {
+                window.alert("Please turn off model editing mode first!");
+                return;
+            }
+
             SCENE_SETTINGS.isEditingPictureMode =
                 !SCENE_SETTINGS.isEditingPictureMode;
 
