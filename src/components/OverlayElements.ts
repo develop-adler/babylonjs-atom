@@ -722,6 +722,9 @@ class OverlayElements {
             editingModelCamera.angularSensibilityX = 3000;
             editingModelCamera.angularSensibilityY = 3000;
 
+            // lower panning sensitivity, higher value = less sensitive
+            editingModelCamera.panningSensibility = 1000;
+
             // disable rotation using keyboard arrow key
             editingModelCamera.keysUp = [];
             editingModelCamera.keysDown = [];
