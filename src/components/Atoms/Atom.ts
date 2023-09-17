@@ -47,18 +47,17 @@ abstract class Atom {
             rightBack: null,
         };
 
-        this._groundMesh = MeshBuilder.CreateBox(
-            "groundMesh",
+        this._groundMesh = MeshBuilder.CreateGround(
+            "ground",
             {
                 width: this.dimensions.width * 4,
-                depth: this.dimensions.height * 4,
-                height: 0.01,
+                height: this.dimensions.height * 4,
             },
             this._scene,
         );
-        this._groundMesh.checkCollisions = true;
+
         this._groundMesh.visibility = 0.3;
-        // this._groundMesh.receiveShadows = true;
+        this._groundMesh.position.y += 0.01;
 
         // Create the reflective material for the ground.
         const groundMaterial = new StandardMaterial("mirrorMaterial", this._scene);
@@ -94,7 +93,6 @@ abstract class Atom {
             this.dimensions.height * 2,
             -this.dimensions.depth * 2,
         );
-        this._frontWallMesh.checkCollisions = true;
         this._frontWallMesh.isVisible = false;
 
         this._wallLMesh = MeshBuilder.CreateBox(
@@ -111,7 +109,6 @@ abstract class Atom {
             this.dimensions.height * 2,
             0,
         );
-        this._wallLMesh.checkCollisions = true;
         this._wallLMesh.isVisible = false;
 
         this._wallRMesh = MeshBuilder.CreateBox(
@@ -128,8 +125,27 @@ abstract class Atom {
             this.dimensions.height * 2,
             0,
         );
-        this._wallRMesh.checkCollisions = true;
         this._wallRMesh.isVisible = false;
+
+        // === performance optimization ===
+        // static mesh, no need to evaluate every frame
+        this._groundMesh.freezeWorldMatrix();
+        this._frontWallMesh.freezeWorldMatrix();
+        this._wallLMesh.freezeWorldMatrix();
+        this._wallRMesh.freezeWorldMatrix();
+
+        // don't update bounding info
+        this._groundMesh.doNotSyncBoundingInfo = true;
+        this._frontWallMesh.doNotSyncBoundingInfo = true;
+        this._wallLMesh.doNotSyncBoundingInfo = true;
+        this._wallRMesh.doNotSyncBoundingInfo = true;
+
+        // vertex structure is simple, stop using indices
+        this._groundMesh.convertToUnIndexedMesh();
+        this._frontWallMesh.convertToUnIndexedMesh();
+        this._wallLMesh.convertToUnIndexedMesh();
+        this._wallRMesh.convertToUnIndexedMesh();
+        // ================================
 
         this._groundAggregate = new PhysicsAggregate(
             this._groundMesh,
