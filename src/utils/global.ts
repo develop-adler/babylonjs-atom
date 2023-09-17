@@ -1,4 +1,4 @@
-import type { AbstractMesh, Mesh } from "@babylonjs/core";
+import type { AbstractMesh, TransformNode } from "@babylonjs/core";
 
 export const SCENE_SETTINGS: {
     isThirdperson: boolean;
@@ -10,7 +10,7 @@ export const SCENE_SETTINGS: {
     selectedMeshParentName: string;
     hoveredMeshParentName: string;
     importedMeshesMap: Map<number, AbstractMesh>,
-    importedMeshGroups: Map<string, Mesh>
+    importedMeshGroups: Map<string, TransformNode>
 } = {
     isThirdperson: false,
     isEditingPictureMode: false,
@@ -21,5 +21,5 @@ export const SCENE_SETTINGS: {
     selectedMeshParentName: "",
     hoveredMeshParentName: "",
     importedMeshesMap: new Map<number, AbstractMesh>(),
-    importedMeshGroups: new Map<string, Mesh>(),
+    importedMeshGroups: new Map<string, TransformNode>(),
 };

@@ -72,6 +72,9 @@ class Picture {
             this._scene,
         );
         this._pictureFrameMaterial.diffuseColor = Picture.PICTURE_FRAME_COLOR;
+        
+        // optimize material by freezing shader
+        this._pictureFrameMaterial.freeze();
 
         this._pictureMaterial = new StandardMaterial(
             `picture_${this._src}_material`,
@@ -81,6 +84,9 @@ class Picture {
         this._pictureMaterial.diffuseTexture = this._texture;
         this._pictureMaterial.emissiveColor = new Color3(0.5, 0.5, 0.5); // brighten image
         this._pictureMaterial.useAlphaFromDiffuseTexture = true;
+
+        // optimize material by freezing shader
+        this._pictureFrameMaterial.freeze();
 
         const createPictureFrameMesh = (
             width: number,
@@ -236,6 +242,16 @@ class Picture {
                     );
                     break;
             }
+
+            // === performance optimization ===
+            // static mesh, no need to evaluate every frame
+            this._pictureFrameMesh.freezeWorldMatrix();
+            this._pictureMesh.freezeWorldMatrix();
+            
+            // don't update bounding info
+            this._pictureFrameMesh.doNotSyncBoundingInfo = true;
+            this._pictureMesh.doNotSyncBoundingInfo = true;
+            // ================================
 
             this._atom.addMeshesToReflectionList([
                 this._pictureFrameMesh,

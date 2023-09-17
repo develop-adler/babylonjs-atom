@@ -85,8 +85,10 @@ class Core {
     private static readonly CHARACTER_CAMERA_HEIGHT: number = 1.15;
 
     constructor() {
+        // replace default loading screen overlay
         new LoadingUI();
 
+        // babylonjs canvas
         this._canvas = document.createElement("canvas");
         this._canvas.style.width = "100%";
         this._canvas.style.height = "100%";
@@ -95,6 +97,7 @@ class Core {
         this._canvas.id = "babylonCanvas";
         document.getElementById("app")!.appendChild(this._canvas);
 
+        // joystick
         this._joystick = new Joystick();
 
         // initialize babylon scene and engine
@@ -103,10 +106,14 @@ class Core {
         // show loading screen
         this._engine.displayLoadingUI();
 
+        // create scene
         this._scene = new BABYLON.Scene(this._engine);
+
+        // gizmo manager
         this._gizmoManager = new BABYLON.GizmoManager(this._scene);
         this._initGizmoManager();
 
+        // camera
         this._camera = new BABYLON.ArcRotateCamera(
             "camera",
             -Math.PI * 0.5,
@@ -117,8 +124,14 @@ class Core {
         );
         this._initCamera();
 
-        // wait until scene has physics then create scene
+        // wait until scene has physics then setup scene
         this.initScene().then(async () => {
+            // Optimizer
+            const options = new BABYLON.SceneOptimizerOptions(120, 2000);
+            options.addOptimization(new BABYLON.HardwareScalingOptimization(0, 1));
+            const optimizer = new BABYLON.SceneOptimizer(this._scene, options);
+            optimizer.start();
+
             this.createLight();
 
             this._atom = this.createAtom("classic");
@@ -446,7 +459,7 @@ class Core {
                 }
 
                 // add meshes to a parent node and assign to imported mesh map
-                const parent = new BABYLON.Mesh(filename, this._scene);
+                const parent = new BABYLON.TransformNode(filename, this._scene);
                 meshes.forEach(mesh => {
                     mesh.outlineColor = BABYLON.Color3.Green();
                     mesh.outlineWidth = 0.05;
