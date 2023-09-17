@@ -54,8 +54,7 @@ const deleteImportedMesh = (
         // dispose parent mesh
         const parentMesh = importedMeshGroups.get(selectedMeshParentName);
         if (parentMesh) {
-            scene.removeMesh(parentMesh);
-            parentMesh.material?.dispose();
+            scene.removeTransformNode(parentMesh);
             parentMesh.dispose();
         }
         parentMesh?.dispose();
