@@ -39,6 +39,11 @@ class ClassicRoom extends Atom {
 
                 this._meshes.forEach(mesh => {
                     mesh.receiveShadows = true;
+
+                    // optimize performance
+                    mesh.freezeWorldMatrix();
+                    mesh.material?.freeze();
+                    mesh.doNotSyncBoundingInfo = true;
                 });
                 // if (this._shadowGenerators.length) {
                 //     this._shadowGenerators?.forEach(generator => {

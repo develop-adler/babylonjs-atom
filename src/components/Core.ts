@@ -10,7 +10,6 @@ import AvatarController from "./Controller/AvatarController";
 import Joystick from "./Controller/Joystick";
 import Atom from "./Atoms/Atom";
 import ClassicRoom from "./Atoms/ClassicRoom";
-import ModernRoom from "./Atoms/ModernRoom";
 // import Furniture from "./AtomElements/Furniture";
 import LoadingUI from "./LoadingUI";
 
@@ -588,8 +587,6 @@ class Core {
         switch (type) {
             case "classic":
                 return new ClassicRoom(this._scene);
-            case "modern":
-                return new ModernRoom(this._scene);
         }
 
         return undefined!;
