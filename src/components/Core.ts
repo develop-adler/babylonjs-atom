@@ -382,7 +382,7 @@ class Core {
     }
 
     public setFirstperson(pointerLock: boolean = false): void {
-        this._avatar?.hide();
+        this._avatar.hide();
 
         if (pointerLock && !isMobile()) {
             this._engine.enterPointerlock();
@@ -409,6 +409,7 @@ class Core {
         this._camera.upperRadiusLimit = 3; // max distance
         this._scene.switchActiveCamera(this._camera);
 
+        this._avatar.show();
         if (!this._avatarController) {
             this._avatarController = new AvatarController(
                 this._avatar.root,
