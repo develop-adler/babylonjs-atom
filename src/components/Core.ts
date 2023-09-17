@@ -245,8 +245,6 @@ class Core {
         // enable physics in the scene with a gravity
         this._scene.enablePhysics(gravityVector, havokPlugin);
 
-        this._scene.collisionsEnabled = true;
-
         // hover object in editing model mode
         this._scene.onPointerMove = () => {
             if (!SCENE_SETTINGS.isEditingModelMode || SCENE_SETTINGS.hasModelSelected)
