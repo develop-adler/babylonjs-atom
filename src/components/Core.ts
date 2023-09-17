@@ -179,7 +179,6 @@ class Core {
             // remove event listener
             this._scene.onDispose = () => {
                 window.removeEventListener("resize", handleResize);
-                this.dispose();
             };
         });
     }
@@ -584,7 +583,7 @@ class Core {
         return undefined!;
     }
 
-    private dispose(): void {
+    public dispose(): void {
         // dispose cameras
         this._scene.cameras.forEach(camera => {
             this._scene.removeCamera(camera);
