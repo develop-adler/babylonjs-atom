@@ -5,9 +5,9 @@ import * as BABYLON from "@babylonjs/core";
 import { HavokPhysicsWithBindings } from "@babylonjs/havok";
 // import * as Hammer from "hammerjs";
 
-import Avatar from "./Avatar";
-import AvatarController from "./Controller/AvatarController";
-import Joystick from "./Controller/Joystick";
+import Avatar from "./Avatar/Avatar";
+import AvatarController from "./Avatar/AvatarController";
+import Joystick from "./Joystick";
 import Atom from "./Atoms/Atom";
 import ClassicRoom from "./Atoms/ClassicRoom";
 // import Furniture from "./AtomElements/Furniture";
@@ -420,8 +420,7 @@ class Core {
         this._avatar.show();
         if (!this._avatarController) {
             this._avatarController = new AvatarController(
-                this._avatar.root,
-                this._avatar.physicsBody,
+                this._avatar,
                 this._camera,
                 this._scene,
                 this._joystick,

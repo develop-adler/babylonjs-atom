@@ -13,16 +13,14 @@ import {
     ShadowGenerator,
     Vector3,
 } from "@babylonjs/core";
-import Atom from "./Atoms/Atom";
+import Atom from "../Atoms/Atom";
 
 class Avatar {
     private _scene: Scene;
     private _atom: Atom;
     private _root!: AbstractMesh;
     private _meshes!: AbstractMesh[];
-    private _animations: {
-        [key: string]: AnimationGroup;
-    } = {};
+    private _animations: Record<string, AnimationGroup> = {};
     private _capsuleMesh!: Mesh;
     private _physicsAggregate!: PhysicsAggregate;
     private _shadowGenerators: ShadowGenerator[] = [];
@@ -46,7 +44,7 @@ class Avatar {
     public get meshes(): AbstractMesh[] {
         return this._meshes;
     }
-    public get animations(): { [key: string]: AnimationGroup } {
+    public get animations(): Record<string, AnimationGroup> {
         return this._animations;
     }
     public get physicsAggregate(): PhysicsAggregate {
@@ -59,8 +57,8 @@ class Avatar {
     public async loadModel(): Promise<void> {
         const { meshes, animationGroups } = await SceneLoader.ImportMeshAsync(
             "",
-            "/models/",
-            "character.glb",
+            "/models/avatar/",
+            "m_default.glb",
             this._scene,
         );
         this._meshes = meshes;
@@ -71,21 +69,26 @@ class Avatar {
         this._scene.animationPropertiesOverride.blendingSpeed = 0.07;
         this._scene.animationPropertiesOverride.loopMode = 1;
 
-        // play Idle animation
-        // 0: Crouch
-        // 1: Idle
-        // 2: RumbaDance
-        // 3: Run
-        // 4: SneakWalk
-        // 5: Walk
-        animationGroups[0].stop();
-        animationGroups[1].start(
-            true,
-            1.0,
-            animationGroups[1].from,
-            animationGroups[1].to,
-            false,
-        );
+        // // play Idle animation of Mixamo character
+        // // 0: Crouch
+        // // 1: Idle
+        // // 2: RumbaDance
+        // // 3: Run
+        // // 4: SneakWalk
+        // // 5: Walk
+        // animationGroups[0].stop();
+        // animationGroups[1].start(
+        //     true,
+        //     1.0,
+        //     animationGroups[1].from,
+        //     animationGroups[1].to,
+        //     false,
+        // );
+
+        // add animation groups
+        animationGroups.forEach((animation) => {
+            this._animations[animation.name] = animation;
+        });
 
         this._meshes.forEach((mesh) => {
             this._atom.addMeshToReflectionList(mesh as Mesh);
