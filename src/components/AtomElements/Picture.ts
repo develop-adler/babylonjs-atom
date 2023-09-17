@@ -251,6 +251,10 @@ class Picture {
             // don't update bounding info
             this._pictureFrameMesh.doNotSyncBoundingInfo = true;
             this._pictureMesh.doNotSyncBoundingInfo = true;
+
+            // vertex structure is simple, stop using indices
+            this._pictureFrameMesh.convertToUnIndexedMesh();
+            this._pictureMesh.convertToUnIndexedMesh();
             // ================================
 
             this._atom.addMeshesToReflectionList([
@@ -268,8 +272,14 @@ class Picture {
                         return;
                     }
                     this._scene.hoverCursor = "pointer";
+
+                    this._pictureFrameMaterial.unfreeze();
                     this._pictureFrameMaterial.diffuseColor = Color3.Yellow();
                     this._pictureFrameMaterial.emissiveColor = Color3.Yellow();
+
+                    this._scene.onAfterRenderObservable.addOnce(() => {
+                        this._pictureFrameMaterial.freeze();
+                    });
                 }),
             );
             actionManager.registerAction(
@@ -277,8 +287,14 @@ class Picture {
                     // change cursor to default on hover out
                     if (!SCENE_SETTINGS.isEditingPictureMode) return;
                     this._scene.hoverCursor = "default";
+
+                    this._pictureFrameMaterial.unfreeze();
                     this._pictureFrameMaterial.diffuseColor = Picture.PICTURE_FRAME_COLOR;
                     this._pictureFrameMaterial.emissiveColor = Color3.Black();
+
+                    this._scene.onAfterRenderObservable.addOnce(() => {
+                        this._pictureFrameMaterial.freeze();
+                    });
                 }),
             );
             this._pictureMesh.actionManager = actionManager;
