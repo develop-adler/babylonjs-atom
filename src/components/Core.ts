@@ -5,9 +5,9 @@ import * as BABYLON from "@babylonjs/core";
 import { HavokPhysicsWithBindings } from "@babylonjs/havok";
 // import * as Hammer from "hammerjs";
 
-import Character from "./Character";
-import CharacterController from "./CharacterController";
-import Joystick from "./Joystick";
+import Avatar from "./Avatar";
+import AvatarController from "./Controller/AvatarController";
+import Joystick from "./Controller/Joystick";
 import Atom from "./Atoms/Atom";
 import ClassicRoom from "./Atoms/ClassicRoom";
 import ModernRoom from "./Atoms/ModernRoom";
@@ -76,8 +76,8 @@ class Core {
     private _havok!: HavokPhysicsWithBindings;
     private _camera: BABYLON.ArcRotateCamera;
     private _atom!: Atom;
-    private _character!: Character;
-    private _characterController?: CharacterController;
+    private _avatar!: Avatar;
+    private _avatarController?: AvatarController;
     private _joystick: Joystick;
     private _shadowGenerators: BABYLON.ShadowGenerator[] = [];
     private _gizmoManager: BABYLON.GizmoManager;
@@ -123,6 +123,19 @@ class Core {
 
             this._atom = this.createAtom("classic");
 
+            this._avatar = new Avatar(
+                this._scene,
+                this._atom,
+                this._shadowGenerators,
+            );
+
+            await this._avatar.loadModel();
+
+            this.setThirdperson();
+
+            // hide loading screen
+            this._engine.hideLoadingUI();
+
             // new Furniture("table_001.glb", this._scene, this._atom, this._shadowGenerators, {
             //     position: new BABYLON.Vector3(3, 0, 2),
             //     type: "cylinder",
@@ -144,28 +157,13 @@ class Core {
             //     rotation: new BABYLON.Vector3(0, Math.PI * 0.5, 0),
             // });
 
-            // thirperson controller mode as default mode
-            this.initThirdPersonCamera();
-            await this.initCharacterAsync().then(() => {
-                this._characterController = new CharacterController(
-                    this._character.root as BABYLON.Mesh,
-                    this._character.physicsBody,
-                    this._camera,
-                    this._scene,
-                    this._joystick,
-                );
-            });
-
             this.initInputControls();
 
-            // hide loading screen
-            this._engine.hideLoadingUI();
-
             this._engine.runRenderLoop(() => {
-                if (this._scene) this._scene.render();
+                this._scene.render();
             });
 
-            // the canvas/window resize event handler
+            // canvas/window resize event handler
             const handleResize = () => {
                 this._engine.resize();
 
@@ -207,11 +205,11 @@ class Core {
     public get atom(): Atom {
         return this._atom;
     }
-    public get character(): Character {
-        return this._character;
+    public get character(): Avatar {
+        return this._avatar;
     }
-    public get characterController(): CharacterController {
-        return this._characterController!;
+    public get characterController(): AvatarController {
+        return this._avatarController!;
     }
     public get shadowGenerators(): BABYLON.ShadowGenerator[] {
         return this._shadowGenerators;
@@ -383,7 +381,9 @@ class Core {
         this._camera.panningSensibility = 0;
     }
 
-    private initFirstPersonCamera(pointerLock: boolean = false): void {
+    public setFirstperson(pointerLock: boolean = false): void {
+        this._avatar?.hide();
+
         if (pointerLock && !isMobile()) {
             this._engine.enterPointerlock();
             this._scene.onPointerDown = e => {
@@ -400,66 +400,25 @@ class Core {
         this._scene.switchActiveCamera(this._camera);
 
         SCENE_SETTINGS.isThirdperson = false;
-    }
-
-    private initThirdPersonCamera(): void {
-        this._camera.lowerRadiusLimit = 0.5; // min distance
-        this._camera.upperRadiusLimit = 3; // max distance
-        this._scene.switchActiveCamera(this._camera);
-
-        SCENE_SETTINGS.isThirdperson = true;
-    }
-
-    public setFirstperson(pointerLock: boolean = false): void {
-        this._character?.hide();
-        this.initFirstPersonCamera(pointerLock);
 
         SCENE_SETTINGS.isThirdperson = false;
     }
 
-    public setThirdperson(): void {
-        this.initThirdPersonCamera();
+    public async setThirdperson(): Promise<void> {
+        this._camera.lowerRadiusLimit = 0.5; // min distance
+        this._camera.upperRadiusLimit = 3; // max distance
+        this._scene.switchActiveCamera(this._camera);
 
-        if (!this._character) {
-            this.initCharacterAsync().then(() => {
-                if (!this._characterController) {
-                    this._characterController = new CharacterController(
-                        this._character.root as BABYLON.Mesh,
-                        this._character.physicsBody,
-                        this._camera,
-                        this._scene,
-                        this._joystick,
-                    );
-                } else {
-                    this._characterController.start();
-                }
-            });
-        } else {
-            this._character.show();
-
-            if (!this._characterController) {
-                this._characterController = new CharacterController(
-                    this._character.root as BABYLON.Mesh,
-                    this._character.physicsBody,
-                    this._camera,
-                    this._scene,
-                    this._joystick,
-                );
-            } else {
-                this._characterController.start();
-            }
-        }
-
-        if (!this._characterController) {
-            this._characterController = new CharacterController(
-                this._character.root as BABYLON.Mesh,
-                this._character.physicsBody,
+        if (!this._avatarController) {
+            this._avatarController = new AvatarController(
+                this._avatar.root,
+                this._avatar.physicsBody,
                 this._camera,
                 this._scene,
                 this._joystick,
             );
         } else {
-            this._characterController.start();
+            this._avatarController.start();
         }
 
         SCENE_SETTINGS.isThirdperson = true;
@@ -527,7 +486,7 @@ class Core {
         // Keyboard input
         this._scene.onKeyboardObservable.add(kbInfo => {
             if (kbInfo.type === BABYLON.KeyboardEventTypes.KEYDOWN) {
-                switch (kbInfo.event.key.toLowerCase().trim()) {
+                switch (kbInfo.event.key.toLowerCase()) {
                     case "i":
                         if (this._scene.debugLayer.isVisible()) {
                             this._scene.debugLayer.hide();
@@ -538,17 +497,6 @@ class Core {
                     case "delete":
                         deleteImportedMesh(this._scene, this._gizmoManager);
                         break;
-                    // case "1":
-                    //     // switch to first person controller (with pointer lock) by pressing 1
-                    //     this.setFirstperson(true);
-                    //     break;
-                    // case "2":
-                    //     // switch to first person controller (without pointer lock) by pressing 2
-                    //     this.setFirstperson(false);
-                    //     break;
-                    // case "3":
-                    //     this.setThirdperson();
-                    //     break;
                 }
             }
         });
@@ -635,22 +583,6 @@ class Core {
         return undefined!;
     }
 
-    // private initCharacter(): void {
-    //     if (this._character) return;
-    //     this._character = new Character(this._scene, this._atom, _shadowGenerators);
-    //     this._character.loadModel();
-    // }
-
-    private async initCharacterAsync(): Promise<void> {
-        if (this._character) return;
-        this._character = new Character(
-            this._scene,
-            this._atom,
-            this._shadowGenerators,
-        );
-        await this._character.loadModel();
-    }
-
     private dispose(): void {
         // dispose cameras
         this._scene.cameras.forEach(camera => {
@@ -659,10 +591,10 @@ class Core {
         });
 
         // dispose character and character controller
-        this._character?.dispose();
-        this._character = null!;
-        this._characterController?.dispose();
-        this._characterController = null!;
+        this._avatar?.dispose();
+        this._avatar = null!;
+        this._avatarController?.dispose();
+        this._avatarController = null!;
         this._joystick.dispose();
         this._joystick = null!;
 

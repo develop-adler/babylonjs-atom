@@ -4,7 +4,6 @@ import {
     AnimationGroup,
     ArcRotateCamera,
     ExecuteCodeAction,
-    KeyboardEventTypes,
     PhysicsBody,
     PhysicsRaycastResult,
     Quaternion,
@@ -14,9 +13,22 @@ import {
 } from "@babylonjs/core";
 import Joystick from "./Joystick";
 import { EventData, JoystickOutputData } from "nipplejs";
-import { SCENE_SETTINGS } from "../utils/global";
+import { SCENE_SETTINGS } from "../../utils/global";
 
-class CharacterController {
+interface KeyStatus {
+    " ": boolean; // space
+    Shift: boolean;
+    w: boolean;
+    arrowup: boolean;
+    a: boolean;
+    arrowleft: boolean;
+    s: boolean;
+    arrowright: boolean;
+    d: boolean;
+    arrowdown: boolean;
+}
+
+class AvatarController {
     private _scene: Scene;
     private _camera: ArcRotateCamera;
     private _mesh: AbstractMesh;
@@ -25,35 +37,32 @@ class CharacterController {
     private _raycaster: Ray;
     private _raycastResult: PhysicsRaycastResult;
 
-    private animations: {
-        [key: string]: AnimationGroup;
-    } = {};
-    private isActive: boolean = false;
-    private isDancing: boolean = false;
-    private isCrouching: boolean = false;
-    private isMoving: boolean = false;
-    private isRunning: boolean = false;
+    private _animations: Record<string, AnimationGroup> = {};
+    private _isActive: boolean = false;
+    private _isDancing: boolean = false;
+    private _isCrouching: boolean = false;
+    private _isMoving: boolean = false;
+    private _isRunning: boolean = false;
 
-    private keyStatus: {
-        [key: string]: boolean;
-    } = {
-            " ": false, // space
-            Shift: false,
-            w: false,
-            arrowup: false,
-            a: false,
-            arrowleft: false,
-            s: false,
-            arrowright: false,
-            d: false,
-            arrowdown: false,
-        };
+    private keyStatus: KeyStatus = {
+        " ": false, // space
+        Shift: false,
+        w: false,
+        arrowup: false,
+        a: false,
+        arrowleft: false,
+        s: false,
+        arrowright: false,
+        d: false,
+        arrowdown: false,
+    };
 
     private oldMove: { x: number; y: number; z: number };
-    private moveDirection: Vector3 = new Vector3(0, 0, 0);
-    private frontVector: Vector3 = new Vector3(0, 0, 0);
-    private sideVector: Vector3 = new Vector3(0, 0, 0);
+    private moveDirection: Vector3 = Vector3.Zero();
+    private frontVector: Vector3 = Vector3.Zero();
+    private sideVector: Vector3 = Vector3.Zero();
 
+    private static readonly AVATAR_HEAD_HEIGHT: number = 1.65;
     private static readonly CROUCH_SPEED: number = 0.015;
     private static readonly WALK_SPEED: number = 0.03;
     private static readonly RUN_SPEED: number = 0.08;
@@ -61,7 +70,7 @@ class CharacterController {
     private static readonly DISTANCE_FROM_WALL: number = 0.8;
 
     private animSpeed: number = 1.0;
-    private moveSpeed: number = CharacterController.WALK_SPEED;
+    private moveSpeed: number = AvatarController.WALK_SPEED;
 
     constructor(
         mesh: AbstractMesh,
@@ -93,17 +102,32 @@ class CharacterController {
             this._joystick.getManager().on("end", handleJoystickMove);
         }
 
-        this.animations.idle = this._scene.getAnimationGroupByName("Idle")!;
-        this.animations.walk = this._scene.getAnimationGroupByName("Walk")!;
-        this.animations.crouch = this._scene.getAnimationGroupByName("Crouch")!;
-        this.animations.run = this._scene.getAnimationGroupByName("Run")!;
-        this.animations.rumba = this._scene.getAnimationGroupByName("RumbaDance")!;
-        this.animations.sneakwalk =
+        this._animations.idle = this._scene.getAnimationGroupByName("Idle")!;
+        this._animations.walk = this._scene.getAnimationGroupByName("Walk")!;
+        this._animations.crouch = this._scene.getAnimationGroupByName("Crouch")!;
+        this._animations.run = this._scene.getAnimationGroupByName("Run")!;
+        this._animations.rumba = this._scene.getAnimationGroupByName("RumbaDance")!;
+        this._animations.sneakwalk =
             this._scene.getAnimationGroupByName("SneakWalk")!;
 
         this.oldMove = { x: 0, y: 0, z: 0 };
 
-        this.start();
+        if (this._mesh === undefined) {
+            console.error("Mesh is undefined");
+        }
+        if (this._meshBody === undefined) {
+            console.error("Mesh phyics body is undefined");
+        }
+        if (this._camera === undefined) {
+            console.error("Camera is undefined");
+        }
+        if (
+            this._mesh !== undefined &&
+            this._meshBody !== undefined &&
+            this._camera !== undefined
+        ) {
+            this.start();
+        }
     }
 
     public start(): void {
@@ -113,25 +137,29 @@ class CharacterController {
         // on key down
         this._scene.actionManager.registerAction(
             new ExecuteCodeAction(ActionManager.OnKeyDownTrigger, e => {
-                let key = e.sourceEvent.key.toLowerCase();
+                const key = e.sourceEvent.key.toLowerCase();
 
-                if (key === "shift") {
-                    // slow down if shift is held
-                    this.moveSpeed = CharacterController.CROUCH_SPEED;
-
-                    this.isCrouching = true;
-                    // stop dancing animation
-                    this.isDancing = false;
-                }
-                if (key === "control") {
-                    this.toggleRun();
-                }
-
-                if (key === "g") {
-                    this.isDancing = !this.isDancing;
-                }
-                if (key in this.keyStatus) {
-                    this.keyStatus[key] = true;
+                switch (key) {
+                    case "shift":
+                        // Slow down if shift is held
+                        this.moveSpeed = AvatarController.CROUCH_SPEED;
+                        this._isCrouching = true;
+                        // Stop dancing animation
+                        this._isDancing = false;
+                        break;
+                    case "control":
+                        this._toggleRun();
+                        break;
+                    case "g":
+                        this._isDancing = !this._isDancing;
+                        break;
+                    case " ":
+                        this._jump();
+                        break;
+                    default:
+                        if (key in this.keyStatus) {
+                            this.keyStatus[key as keyof KeyStatus] = true;
+                        }
                 }
             }),
         );
@@ -139,80 +167,82 @@ class CharacterController {
         // on key up
         this._scene.actionManager.registerAction(
             new ExecuteCodeAction(ActionManager.OnKeyUpTrigger, e => {
-                let key = e.sourceEvent.key.toLowerCase();
+                const key = e.sourceEvent.key.toLowerCase();
 
                 if (key === "shift") {
-                    this.isCrouching = false;
+                    this._isCrouching = false;
 
-                    if (!this.isRunning) {
-                        this.moveSpeed = CharacterController.WALK_SPEED;
+                    if (!this._isRunning) {
+                        this.moveSpeed = AvatarController.WALK_SPEED;
                     } else {
-                        this.moveSpeed = CharacterController.RUN_SPEED;
+                        this.moveSpeed = AvatarController.RUN_SPEED;
                     }
                 }
                 if (key in this.keyStatus) {
-                    this.keyStatus[key] = false;
+                    this.keyStatus[key as keyof KeyStatus] = false;
                 }
             }),
         );
 
-        this._scene.onKeyboardObservable.add(kbInfo => {
-            if (kbInfo.type === KeyboardEventTypes.KEYDOWN) {
-                switch (kbInfo.event.key.toLowerCase().trim()) {
-                    case "":
-                        this.jump();
-                        break;
-                }
-            }
-        });
+        // this._scene.onKeyboardObservable.add(kbInfo => {
+        //     if (kbInfo.type === KeyboardEventTypes.KEYDOWN) {
+        //         switch (kbInfo.event.key.toLowerCase().trim()) {
+        //             case "":
+        //                 this._jump();
+        //                 break;
+        //         }
+        //     }
+        // });
 
-        this._scene.onBeforeRenderObservable.add(() => {
-            if (!this.isActive) return;
-            this.updateCharacter();
-            this.updateCamera();
-            this.updateCharacterAnimation();
-        });
+        this._isActive = true;
 
-        this.isActive = true;
+        this._scene.onBeforeRenderObservable.add(this._updateController);
     }
 
     public stop(): void {
-        this.isActive = false;
+        this._isActive = false;
         this._scene.actionManager.dispose();
     }
 
-    private updateCharacterAnimation(): void {
-        if (this.isMoving) {
-            if (this.isCrouching) {
+    private _updateController = () => {
+        this._updateCharacter();
+        this._updateCamera();
+        this._updateCharacterAnimation();
+    };
+
+    private _updateCharacterAnimation(): void {
+        if (this._isMoving) {
+            if (this._isCrouching) {
                 // play sneakwalk animation if shift is held
-                this.playAnimation("sneakwalk");
+                this._playAnimation("sneakwalk");
             } else {
-                if (!this.isRunning) {
-                    this.playAnimation("walk");
+                if (!this._isRunning) {
+                    this._playAnimation("walk");
                     return;
                 }
-                this.playAnimation("run");
+                this._playAnimation("run");
             }
         } else {
             switch (true) {
                 // play dance animation if g is pressed
-                case this.isDancing:
-                    this.playAnimation("rumba");
+                case this._isDancing:
+                    this._playAnimation("rumba");
                     break;
                 // play crouch animation if shift is held
-                case this.isCrouching:
-                    this.playAnimation("crouch");
+                case this._isCrouching:
+                    this._playAnimation("crouch");
                     break;
                 // play idle animation if no movement keys are pressed
                 default:
-                    this.playAnimation("idle");
+                    this._playAnimation("idle");
                     break;
             }
         }
     }
 
-    private updateCamera(): void {
-        if (!this.isActive) return;
+    private _updateCamera(): void {
+        if (!this._isActive) return;
+
         const translation = this._mesh.position;
 
         const tmpX = translation.x;
@@ -230,14 +260,18 @@ class CharacterController {
         this._camera.position.z += deltaZ;
 
         this._camera.setTarget(
-            new Vector3(translation.x, translation.y + 1.65, translation.z),
+            new Vector3(
+                translation.x,
+                translation.y + AvatarController.AVATAR_HEAD_HEIGHT,
+                translation.z,
+            ),
         );
 
-        this.updateRaycaster();
+        this._updateRaycaster();
     }
 
-    private updateCharacter(): void {
-        if (!this.isActive) return;
+    private _updateCharacter(): void {
+        if (!this._isActive) return;
 
         // keyboard controls
         const forward = !!this.keyStatus["w"] || !!this.keyStatus["arrowup"];
@@ -249,8 +283,8 @@ class CharacterController {
             this._joystick?.getEvent()?.type === "move" &&
             this._joystick?.getData()?.angle?.radian
         ) {
-            this.isMoving = true;
-            this.isDancing = false;
+            this._isMoving = true;
+            this._isDancing = false;
 
             // calculate direction from joystick
             // add additional 90 degree to the right
@@ -294,8 +328,8 @@ class CharacterController {
             // move
             this._meshBody.setLinearVelocity(this.moveDirection);
         } else if (forward || backward || left || right) {
-            this.isMoving = true;
-            this.isDancing = false;
+            this._isMoving = true;
+            this._isDancing = false;
 
             this.frontVector.set(0, 0, Number(forward) - Number(backward));
             this.sideVector.set(Number(left) - Number(right), 0, 0);
@@ -324,7 +358,7 @@ class CharacterController {
             );
 
             // get direction offset
-            const directionOffset = this.calculateDirectionOffset();
+            const directionOffset = this._calculateDirectionOffset();
 
             // rotate mesh with respect to camera direction with lerp
             this._mesh.rotationQuaternion = Quaternion.Slerp(
@@ -342,12 +376,12 @@ class CharacterController {
             this._meshBody.setLinearVelocity(this.moveDirection);
         } else {
             this._meshBody.setLinearVelocity(this._meshBody.getLinearVelocity());
-            this.isMoving = false;
+            this._isMoving = false;
         }
     }
 
     // this prevents camera from clipping through walls
-    updateRaycaster() {
+    private _updateRaycaster() {
         if (!this._scene.getPhysicsEngine()) return;
 
         const from = new Vector3(
@@ -394,7 +428,7 @@ class CharacterController {
 
             // Computes the new position of the camera
             const newPosition = hitPoint.subtract(
-                direction.scale(CharacterController.DISTANCE_FROM_WALL * distance),
+                direction.scale(AvatarController.DISTANCE_FROM_WALL * distance),
             );
 
             // update the max distance of camera
@@ -421,25 +455,25 @@ class CharacterController {
         }
     }
 
-    private jump(): void {
-        if (!this.isActive) return;
+    private _jump(): void {
+        if (!this._isActive) return;
 
         // make mesh jump
         this._meshBody.applyImpulse(
-            new Vector3(0, CharacterController.JUMP_FORCE, 0),
+            new Vector3(0, AvatarController.JUMP_FORCE, 0),
             this._mesh.position,
         );
         console.log("called jump");
     }
 
-    private toggleRun(): void {
-        this.isRunning = !this.isRunning;
-        this.moveSpeed = this.isRunning
-            ? CharacterController.RUN_SPEED
-            : CharacterController.WALK_SPEED;
+    private _toggleRun(): void {
+        this._isRunning = !this._isRunning;
+        this.moveSpeed = this._isRunning
+            ? AvatarController.RUN_SPEED
+            : AvatarController.WALK_SPEED;
     }
 
-    private calculateDirectionOffset(): number {
+    private _calculateDirectionOffset(): number {
         let directionOffset = 0; // w
 
         // switch case version
@@ -478,14 +512,14 @@ class CharacterController {
         return directionOffset;
     }
 
-    private playAnimation(name: string) {
-        Object.entries(this.animations).forEach(([animName, animationGroup]) => {
+    private _playAnimation(name: string) {
+        Object.entries(this._animations).forEach(([animName, animationGroup]) => {
             if (animName === name) {
-                this.animations[name].start(
+                this._animations[name].start(
                     true,
                     this.animSpeed,
-                    this.animations[name].from,
-                    this.animations[name].to,
+                    this._animations[name].from,
+                    this._animations[name].to,
                     false,
                 );
             } else {
@@ -515,4 +549,4 @@ class CharacterController {
     }
 }
 
-export default CharacterController;
+export default AvatarController;

@@ -15,7 +15,7 @@ import {
 } from "@babylonjs/core";
 import Atom from "./Atoms/Atom";
 
-class Character {
+class Avatar {
     private _scene: Scene;
     private _atom: Atom;
     private _root!: AbstractMesh;
@@ -102,7 +102,7 @@ class Character {
 
         this._scene.registerBeforeRender(() => {
             this._root.position.copyFrom(this._capsuleMesh.position);
-            this._root.position.y -= Character.CAPSULE_HEIGHT * 0.5;
+            this._root.position.y -= Avatar.CAPSULE_HEIGHT * 0.5;
         });
     }
 
@@ -111,15 +111,15 @@ class Character {
         this._capsuleMesh = MeshBuilder.CreateCapsule(
             "capsuleMesh",
             {
-                radius: Character.CAPSULE_RADIUS,
-                height: Character.CAPSULE_HEIGHT,
+                radius: Avatar.CAPSULE_RADIUS,
+                height: Avatar.CAPSULE_HEIGHT,
                 tessellation: 2,
                 subdivisions: 1,
             },
             this._scene,
         );
         this._capsuleMesh.isVisible = false;
-        this._capsuleMesh.position = new Vector3(0, Character.CAPSULE_HEIGHT * 0.5, 0);
+        this._capsuleMesh.position = new Vector3(0, Avatar.CAPSULE_HEIGHT * 0.5, 0);
 
         const physicsAggregate = new PhysicsAggregate(
             this._capsuleMesh,
@@ -161,7 +161,7 @@ class Character {
 
         // // reset position
         // this.physicsAggregate.body.disablePreStep = false;
-        // this._capsuleMesh.position = new Vector3(0, Character.CAPSULE_HEIGHT * 0.5, 0);
+        // this._capsuleMesh.position = new Vector3(0, Avatar.CAPSULE_HEIGHT * 0.5, 0);
         // this._scene.onAfterPhysicsObservable.addOnce(() => {
         //     this.physicsAggregate.body.disablePreStep = true;
         // });
@@ -194,4 +194,4 @@ class Character {
     }
 }
 
-export default Character;
+export default Avatar;
