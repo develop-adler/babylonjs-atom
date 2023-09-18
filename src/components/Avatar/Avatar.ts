@@ -24,7 +24,7 @@ const MALE_PARTS: GenderParts = {
     hair: ['m_hair_1', 'm_hair_2', 'm_hair_3'],
     head: ['m_head_1', 'm_head_2'],
     shoes: ['m_shoes_1', 'm_shoes_2'],
-    top: ['m_top_1', 'm_top_2'], 
+    top: ['m_top_1', 'm_top_2'],
 };
 
 class Avatar {
@@ -146,10 +146,12 @@ class Avatar {
         }
     }
 
-    public async loadParts(parts: Record<string, File>): Promise<void> {
-        Object.entries(this._parts).forEach(([partName, partList]) => {
-            console.log(partName);
-            console.log(partList);
+    public async loadParts(partName: string, partIndex: number): Promise<void> {
+        console.log(partName);
+        console.log(partIndex);
+        Object.entries(this._parts).forEach(([name, list]) => {
+            console.log(name);
+            console.log(list);
         })
     }
 
