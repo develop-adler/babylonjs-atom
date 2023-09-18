@@ -143,7 +143,7 @@ class Core {
                 this._shadowGenerators,
             );
 
-            await this._avatar.loadModel();
+            await this._avatar.init();
 
             this.setThirdperson();
 

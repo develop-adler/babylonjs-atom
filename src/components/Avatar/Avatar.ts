@@ -15,15 +15,29 @@ import {
 } from "@babylonjs/core";
 import Atom from "../Atoms/Atom";
 
+// all male parts' file name
+const MALE_PARTS: GenderParts = {
+    eyeL: ['m_eyeL_1'],
+    eyeR: ['m_eyeR_1'],
+    bottom: ['m_pants_1', 'm_pants_2'],
+    body: ['m_body_1'],
+    hair: ['m_hair_1', 'm_hair_2', 'm_hair_3'],
+    head: ['m_head_1', 'm_head_2'],
+    shoes: ['m_shoes_1', 'm_shoes_2'],
+    top: ['m_top_1', 'm_top_2'], 
+};
+
 class Avatar {
     private _scene: Scene;
     private _atom: Atom;
-    private _root!: AbstractMesh;
+    private _gender: "male" | "female" = "male";
+    private _root!: Mesh;
     private _meshes!: AbstractMesh[];
     private _animations: Record<string, AnimationGroup> = {};
     private _capsuleMesh!: Mesh;
     private _physicsAggregate!: PhysicsAggregate;
     private _shadowGenerators: ShadowGenerator[] = [];
+    private _parts: GenderParts = MALE_PARTS;
 
     private static readonly CAPSULE_HEIGHT = 1.75;
     private static readonly CAPSULE_RADIUS = 0.3;
@@ -32,13 +46,14 @@ class Avatar {
         this._scene = scene;
         this._atom = atom;
         this._shadowGenerators = shadowGenerators ?? [];
+        this._root = new Mesh("root", this._scene);
         this.generateCollision();
     }
 
     public get scene(): Scene {
         return this._scene;
     }
-    public get root(): AbstractMesh {
+    public get root(): Mesh {
         return this._root;
     }
     public get meshes(): AbstractMesh[] {
@@ -47,6 +62,9 @@ class Avatar {
     public get animations(): Record<string, AnimationGroup> {
         return this._animations;
     }
+    public get parts(): GenderParts {
+        return this._parts;
+    }
     public get physicsAggregate(): PhysicsAggregate {
         return this._physicsAggregate;
     }
@@ -54,46 +72,37 @@ class Avatar {
         return this._physicsAggregate.body;
     }
 
-    public async loadModel(): Promise<void> {
+    public async init(): Promise<void> {
         const { meshes, animationGroups } = await SceneLoader.ImportMeshAsync(
             "",
-            "/models/avatar/",
+            "/models/avatar/male/",
             "m_default.glb",
             this._scene,
         );
-        this._meshes = meshes;
-        this._root = meshes[0];
+        this._root.position.copyFrom(meshes[0].position);
+        this._root.rotationQuaternion = meshes[0].rotationQuaternion;
 
+        this._meshes = meshes;
+
+        // animation blending
         this._scene.animationPropertiesOverride = new AnimationPropertiesOverride();
         this._scene.animationPropertiesOverride.enableBlending = true;
         this._scene.animationPropertiesOverride.blendingSpeed = 0.07;
         this._scene.animationPropertiesOverride.loopMode = 1;
-
-        // // play Idle animation of Mixamo character
-        // // 0: Crouch
-        // // 1: Idle
-        // // 2: RumbaDance
-        // // 3: Run
-        // // 4: SneakWalk
-        // // 5: Walk
-        // animationGroups[0].stop();
-        // animationGroups[1].start(
-        //     true,
-        //     1.0,
-        //     animationGroups[1].from,
-        //     animationGroups[1].to,
-        //     false,
-        // );
 
         // add animation groups
         animationGroups.forEach((animation) => {
             this._animations[animation.name] = animation;
         });
 
+        // add meshes to reflection list
+        // and assign root as parent
         this._meshes.forEach((mesh) => {
+            mesh.parent = this._root;
             this._atom.addMeshToReflectionList(mesh as Mesh);
         });
 
+        // generate shadows
         if (this._shadowGenerators.length) {
             this._shadowGenerators?.forEach(generator => {
                 this._meshes.forEach(mesh => {
@@ -103,10 +112,45 @@ class Avatar {
             });
         }
 
+        // copy capsule mesh's position to root
         this._scene.registerBeforeRender(() => {
             this._root.position.copyFrom(this._capsuleMesh.position);
             this._root.position.y -= Avatar.CAPSULE_HEIGHT * 0.5;
         });
+    }
+
+    public async loadModel(): Promise<void> {
+        const path = this._gender === "male" ? "/models/avatar/male/" : "/models/avatar/female/";
+        const { meshes } = await SceneLoader.ImportMeshAsync(
+            "",
+            path,
+            "m_default.glb",
+            this._scene,
+        );
+        this._meshes = meshes;
+
+        // add meshes to reflection list
+        this._meshes.forEach((mesh) => {
+            mesh.parent = this._root;
+            this._atom.addMeshToReflectionList(mesh as Mesh);
+        });
+
+        // generate shadows
+        if (this._shadowGenerators.length) {
+            this._shadowGenerators?.forEach(generator => {
+                this._meshes.forEach(mesh => {
+                    mesh.receiveShadows = true;
+                    generator.addShadowCaster(mesh);
+                });
+            });
+        }
+    }
+
+    public async loadParts(parts: Record<string, File>): Promise<void> {
+        Object.entries(this._parts).forEach(([partName, partList]) => {
+            console.log(partName);
+            console.log(partList);
+        })
     }
 
     private generateCollision(): void {
@@ -161,13 +205,6 @@ class Avatar {
         this._meshes.forEach((mesh) => {
             mesh.isVisible = false;
         });
-
-        // // reset position
-        // this.physicsAggregate.body.disablePreStep = false;
-        // this._capsuleMesh.position = new Vector3(0, Avatar.CAPSULE_HEIGHT * 0.5, 0);
-        // this._scene.onAfterPhysicsObservable.addOnce(() => {
-        //     this.physicsAggregate.body.disablePreStep = true;
-        // });
     }
 
     public dispose(): void {

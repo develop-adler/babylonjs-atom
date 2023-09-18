@@ -10,4 +10,15 @@ declare global {
         leftBack: Picture | null;
         rightBack: Picture | null;
     }
+
+    type GenderParts = {
+        eyeL: Array<string>;
+        eyeR: Array<string>;
+        bottom: Array<string>;
+        body: Array<string>;
+        hair: Array<string>;
+        head: Array<string>;
+        shoes: Array<string>;
+        top: Array<string>;
+    };
 }

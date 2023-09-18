@@ -3,6 +3,7 @@ import {
     ActionManager,
     ArcRotateCamera,
     ExecuteCodeAction,
+    Mesh,
     PhysicsBody,
     PhysicsRaycastResult,
     Quaternion,
@@ -32,7 +33,7 @@ class AvatarController {
     private _scene: Scene;
     private _camera: ArcRotateCamera;
     private _avatar: Avatar;
-    private _mesh: AbstractMesh;
+    private _avatarRoot: Mesh;
     private _meshBody: PhysicsBody;
     private _joystick?: Joystick;
     private _raycaster: Ray;
@@ -79,7 +80,7 @@ class AvatarController {
         joystick?: Joystick,
     ) {
         this._avatar = avatar;
-        this._mesh = avatar.root;
+        this._avatarRoot = avatar.root;
         this._meshBody = avatar.physicsBody;
         this._camera = camera;
         this._scene = scene;
@@ -104,7 +105,7 @@ class AvatarController {
 
         this.oldMove = { x: 0, y: 0, z: 0 };
 
-        if (this._mesh === undefined) {
+        if (this._avatarRoot === undefined) {
             console.error("Mesh is undefined");
         }
         if (this._meshBody === undefined) {
@@ -114,7 +115,7 @@ class AvatarController {
             console.error("Camera is undefined");
         }
         if (
-            this._mesh !== undefined &&
+            this._avatarRoot !== undefined &&
             this._meshBody !== undefined &&
             this._camera !== undefined
         ) {
@@ -236,7 +237,7 @@ class AvatarController {
     private _updateCamera(): void {
         if (!this._isActive) return;
 
-        const translation = this._mesh.position;
+        const translation = this._avatarRoot.position;
 
         const tmpX = translation.x;
         const tempY = translation.y;
@@ -280,19 +281,19 @@ class AvatarController {
             // this._isDancing = false;
 
             // calculate direction from joystick
-            // add additional 90 degree to the right
+            // add additional 270 degree to the right
             const directionOffset: number =
-                -this._joystick.getData().angle?.radian + Math.PI * 0.5;
+                -this._joystick.getData().angle?.radian + Math.PI * 0.5 + Math.PI;
 
             // calculate towards camera direction
             const angleYCameraDirection: number = Math.atan2(
-                this._camera.position.x - this._mesh.position.x,
-                this._camera.position.z - this._mesh.position.z,
+                this._camera.position.x - this._avatarRoot.position.x,
+                this._camera.position.z - this._avatarRoot.position.z,
             );
 
             // rotate mesh with respect to camera direction with lerp
-            this._mesh.rotationQuaternion = Quaternion.Slerp(
-                this._mesh.rotationQuaternion!,
+            this._avatarRoot.rotationQuaternion = Quaternion.Slerp(
+                this._avatarRoot.rotationQuaternion!,
                 Quaternion.RotationAxis(
                     Vector3.Up(),
                     angleYCameraDirection + directionOffset,
@@ -346,16 +347,16 @@ class AvatarController {
 
             // calculate towards camera direction
             const angleYCameraDirection = Math.atan2(
-                this._camera.position.x - this._mesh.position.x,
-                this._camera.position.z - this._mesh.position.z,
+                this._camera.position.x - this._avatarRoot.position.x,
+                this._camera.position.z - this._avatarRoot.position.z,
             );
 
             // get direction offset
             const directionOffset = this._calculateDirectionOffset();
 
             // rotate mesh with respect to camera direction with lerp
-            this._mesh.rotationQuaternion = Quaternion.Slerp(
-                this._mesh.rotationQuaternion!,
+            this._avatarRoot.rotationQuaternion = Quaternion.Slerp(
+                this._avatarRoot.rotationQuaternion!,
                 Quaternion.RotationAxis(
                     Vector3.Up(),
                     angleYCameraDirection + directionOffset,
@@ -378,9 +379,9 @@ class AvatarController {
         if (!this._scene.getPhysicsEngine()) return;
 
         const from = new Vector3(
-            this._mesh.position.x,
-            this._mesh.position.y + 1.15,
-            this._mesh.position.z,
+            this._avatarRoot.position.x,
+            this._avatarRoot.position.y + 1.15,
+            this._avatarRoot.position.z,
         );
         const to = new Vector3(
             this.camera.position.x,
@@ -389,9 +390,9 @@ class AvatarController {
         );
 
         const target = new Vector3(
-            this._mesh.position.x,
-            this._mesh.position.y + 1.15,
-            this._mesh.position.z,
+            this._avatarRoot.position.x,
+            this._avatarRoot.position.y + 1.15,
+            this._avatarRoot.position.z,
         );
 
         this._scene.createPickingRayToRef(
@@ -454,7 +455,7 @@ class AvatarController {
     //     // make mesh jump
     //     this._meshBody.applyImpulse(
     //         new Vector3(0, AvatarController.JUMP_FORCE, 0),
-    //         this._mesh.position,
+    //         this._avatarRoot.position,
     //     );
     //     console.log("called jump");
     // }
@@ -469,36 +470,35 @@ class AvatarController {
     private _calculateDirectionOffset(): number {
         let directionOffset = 0; // w
 
-        // switch case version
         switch (true) {
             case this.keyStatus["w"] || this.keyStatus["arrowup"]:
                 switch (true) {
                     case this.keyStatus["d"] || this.keyStatus["arrowright"]:
-                        directionOffset = Math.PI * 0.25; // w + d
+                        directionOffset = -Math.PI * 0.25 - Math.PI * 0.5;
                         break;
                     case this.keyStatus["a"] || this.keyStatus["arrowleft"]:
-                        directionOffset = -Math.PI * 0.25; // w + a
+                        directionOffset = Math.PI * 0.25 + Math.PI * 0.5;
+                        break;
+                    default:
+                        directionOffset = Math.PI;
                         break;
                 }
                 break;
             case this.keyStatus["s"] || this.keyStatus["arrowdown"]:
                 switch (true) {
                     case this.keyStatus["d"] || this.keyStatus["arrowright"]:
-                        directionOffset = Math.PI * 0.25 + Math.PI * 0.5; // w + d
+                        directionOffset = -Math.PI * 0.25;
                         break;
                     case this.keyStatus["a"] || this.keyStatus["arrowleft"]:
-                        directionOffset = -Math.PI * 0.25 - Math.PI * 0.5; // w + a
-                        break;
-                    default:
-                        directionOffset = Math.PI; // s
+                        directionOffset = Math.PI * 0.25;
                         break;
                 }
                 break;
             case this.keyStatus["d"] || this.keyStatus["arrowright"]:
-                directionOffset = Math.PI * 0.5; // d
+                directionOffset = -Math.PI * 0.5;
                 break;
             case this.keyStatus["a"] || this.keyStatus["arrowleft"]:
-                directionOffset = -Math.PI * 0.5; // a
+                directionOffset = Math.PI * 0.5;
                 break;
         }
 
@@ -508,19 +508,21 @@ class AvatarController {
     private _playAnimation(name: string) {
         if (!(name in this._avatar.animations)) return;
 
-        Object.entries(this._avatar.animations).forEach(([animName, animationGroup]) => {
-            if (animName === name) {
-                this._avatar.animations[name].start(
-                    true,
-                    this.animSpeed,
-                    this._avatar.animations[name].from,
-                    this._avatar.animations[name].to,
-                    false,
-                );
-            } else {
-                animationGroup.stop();
-            }
-        });
+        Object.entries(this._avatar.animations).forEach(
+            ([animName, animationGroup]) => {
+                if (animName === name) {
+                    this._avatar.animations[name].start(
+                        true,
+                        this.animSpeed,
+                        this._avatar.animations[name].from,
+                        this._avatar.animations[name].to,
+                        false,
+                    );
+                } else {
+                    animationGroup.stop();
+                }
+            },
+        );
     }
 
     public get scene(): Scene {
@@ -529,8 +531,8 @@ class AvatarController {
     public get camera(): ArcRotateCamera {
         return this._camera;
     }
-    public get mesh(): AbstractMesh {
-        return this._mesh;
+    public get mesh(): Mesh {
+        return this._avatarRoot;
     }
     public get meshBody(): PhysicsBody {
         return this._meshBody;
