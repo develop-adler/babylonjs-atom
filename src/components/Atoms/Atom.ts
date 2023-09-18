@@ -209,7 +209,6 @@ abstract class Atom {
     public updatePictureInAtom(src: string, side: PictureSide): void {
         if (side === null) throw new Error("Side cannot be null");
         this._pictures[side]?.dispose();
-        this._pictures[side] = null;
         this._pictures[side] = new Picture(src, this._scene, this, side);
     }
     public removePictureFromAtom(side: PictureSide): void {
