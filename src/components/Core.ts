@@ -80,7 +80,7 @@ class Core {
     private _shadowGenerators: BABYLON.ShadowGenerator[] = [];
     private _gizmoManager: BABYLON.GizmoManager;
 
-    private static readonly CHARACTER_CAMERA_HEIGHT: number = 1.15;
+    private static readonly AVATAR_CAMERA_HEIGHT: number = 1.15;
 
     constructor() {
         // replace default loading screen overlay
@@ -117,13 +117,16 @@ class Core {
             -Math.PI * 0.5,
             Math.PI * 0.5,
             5,
-            new BABYLON.Vector3(0, Core.CHARACTER_CAMERA_HEIGHT, -2), // target
+            new BABYLON.Vector3(0, Core.AVATAR_CAMERA_HEIGHT, -2), // target
             this._scene,
         );
         this._initCamera();
 
         // wait until scene has physics then setup scene
         this.initScene().then(async () => {
+            // // prioritize performance
+            // this._scene.performancePriority = BABYLON.ScenePerformancePriority.Aggressive;
+
             // Optimizer
             const options = new BABYLON.SceneOptimizerOptions(120, 2000);
             options.addOptimization(new BABYLON.HardwareScalingOptimization(0, 1));
@@ -215,10 +218,10 @@ class Core {
     public get atom(): Atom {
         return this._atom;
     }
-    public get character(): Avatar {
+    public get avatar(): Avatar {
         return this._avatar;
     }
-    public get characterController(): AvatarController {
+    public get avatarController(): AvatarController {
         return this._avatarController!;
     }
     public get shadowGenerators(): BABYLON.ShadowGenerator[] {
@@ -348,7 +351,7 @@ class Core {
             -Math.PI * 0.5,
             Math.PI * 0.5,
             5,
-            new BABYLON.Vector3(0, Core.CHARACTER_CAMERA_HEIGHT, -2), // target
+            new BABYLON.Vector3(0, Core.AVATAR_CAMERA_HEIGHT, -2), // target
             this._scene,
         );
 
@@ -596,7 +599,7 @@ class Core {
             camera.dispose();
         });
 
-        // dispose character and character controller
+        // dispose avatar and avatar controller
         this._avatar?.dispose();
         this._avatar = null!;
         this._avatarController?.dispose();

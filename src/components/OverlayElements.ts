@@ -60,6 +60,7 @@ class OverlayElements {
                 height: 5%;
                 padding: 1rem 1rem;
                 pointer-events: none;
+                z-index: 6;
             }
         `;
         document.getElementsByTagName("head")[0].appendChild(css);
@@ -374,9 +375,6 @@ class OverlayElements {
         const css = document.createElement("style");
         css.innerHTML = `
             #toggleModelEditingButton {
-                /*position: absolute;
-                top: 1rem;
-                left: 30rem;*/
                 margin-right: 0.6rem;
                 pointer-events: all;
                 cursor: pointer;
@@ -419,7 +417,6 @@ class OverlayElements {
                 modelUploadInputButton.style.display = "block";
 
                 this._controlSwitchElement.style.display = "none";
-                this._core.joystick.hide();
             } else {
                 SCENE_SETTINGS.editingImage = null;
                 this._core.gizmoManager.attachToMesh(null);
@@ -437,7 +434,6 @@ class OverlayElements {
                 modelUploadInputButton.style.display = "none";
 
                 this._controlSwitchElement.style.display = "block";
-                this._core.joystick.show();
             }
             this._setupModelEditing();
         };
@@ -509,9 +505,6 @@ class OverlayElements {
         const css = document.createElement("style");
         css.innerHTML = `
             #toggleImageEditingButton {
-                /*position: absolute;
-                top: 1rem;
-                left: 13rem;*/
                 margin-right: 0.6rem;
                 pointer-events: all;
                 cursor: pointer;
@@ -549,14 +542,12 @@ class OverlayElements {
                 uploadImageGuideText.style.display = "block";
 
                 this._controlSwitchElement.style.display = "none";
-                this._core.joystick.hide();
             } else {
                 SCENE_SETTINGS.editingImage = null;
                 toggleImageEditingButton.style.backgroundColor = "#8a8a8a";
                 uploadImageGuideText.style.display = "none";
 
                 this._controlSwitchElement.style.display = "block";
-                this._core.joystick.show();
             }
 
             this._setupImageUpload();
@@ -675,12 +666,14 @@ class OverlayElements {
             editingPictureCamera.panningSensibility = 0;
 
             this._core.scene.switchActiveCamera(editingPictureCamera);
-            this._core.character.hide();
-            this._core.characterController.stop();
+            this._core.avatar.hide();
+            this._core.avatarController.stop();
+            this._core.joystick.hide();
         } else {
             this._core.scene.switchActiveCamera(this._core.camera);
-            this._core.character.show();
-            this._core.characterController.start();
+            this._core.avatar.show();
+            this._core.avatarController.start();
+            this._core.joystick.show();
         }
     }
 
@@ -732,16 +725,18 @@ class OverlayElements {
             editingModelCamera.keysRight = [];
 
             this._core.scene.switchActiveCamera(editingModelCamera);
-            this._core.character.hide();
-            this._core.characterController.stop();
+            this._core.avatar.hide();
+            this._core.avatarController.stop();
+            this._core.joystick.hide();
         } else {
             this._core.scene.switchActiveCamera(this._core.camera);
             this._core.scene.meshes.forEach((mesh: AbstractMesh) => {
                 mesh.renderOutline = false;
             });
 
-            this._core.character.show();
-            this._core.characterController.start();
+            this._core.avatar.show();
+            this._core.avatarController.start();
+            this._core.joystick.show();
         }
     }
 }
