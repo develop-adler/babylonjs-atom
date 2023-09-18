@@ -1,6 +1,7 @@
 import {
     AbstractMesh,
     Color3,
+    InstancedMesh,
     Mesh,
     MeshBuilder,
     MirrorTexture,
@@ -28,8 +29,8 @@ abstract class Atom {
 
     private _groundMesh: Mesh;
     private _frontWallMesh: Mesh;
-    private _wallLMesh: Mesh;
-    private _wallRMesh: Mesh;
+    private _wallLMesh: InstancedMesh;
+    private _wallRMesh: InstancedMesh;
     private _groundAggregate: PhysicsAggregate;
     private _frontWallAggregate: PhysicsAggregate;
     private _wallLAggregate: PhysicsAggregate;
@@ -88,44 +89,33 @@ abstract class Atom {
             },
             this._scene,
         );
+
+        this._wallLMesh = this._frontWallMesh.createInstance("wallLMesh");
+        this._wallRMesh = this._frontWallMesh.createInstance("wallRMesh");
+
+        this._frontWallMesh.isVisible = false;
+        this._wallLMesh.isVisible = false;
+        this._wallRMesh.isVisible = false;
+
         this._frontWallMesh.position = new Vector3(
             0,
             this.dimensions.height * 2,
             -this.dimensions.depth * 2,
         );
-        this._frontWallMesh.isVisible = false;
 
-        this._wallLMesh = MeshBuilder.CreateBox(
-            "wallLMesh",
-            {
-                width: 0.01,
-                depth: this.dimensions.depth * 4,
-                height: this.dimensions.height * 4,
-            },
-            this._scene,
-        );
         this._wallLMesh.position = new Vector3(
             this.dimensions.width * 2,
             this.dimensions.height * 2,
             0,
         );
-        this._wallLMesh.isVisible = false;
+        this._wallLMesh.rotation.y = Math.PI / 2;
 
-        this._wallRMesh = MeshBuilder.CreateBox(
-            "wallRMesh",
-            {
-                width: 0.01,
-                depth: this.dimensions.depth * 4,
-                height: this.dimensions.height * 4,
-            },
-            this._scene,
-        );
         this._wallRMesh.position = new Vector3(
             -this.dimensions.width * 2,
             this.dimensions.height * 2,
             0,
         );
-        this._wallRMesh.isVisible = false;
+        this._wallRMesh.rotation.y = Math.PI / 2;
 
         // === performance optimization ===
         // static mesh, no need to evaluate every frame
@@ -143,8 +133,6 @@ abstract class Atom {
         // vertex structure is simple, stop using indices
         this._groundMesh.convertToUnIndexedMesh();
         this._frontWallMesh.convertToUnIndexedMesh();
-        this._wallLMesh.convertToUnIndexedMesh();
-        this._wallRMesh.convertToUnIndexedMesh();
         // ================================
 
         this._groundAggregate = new PhysicsAggregate(
