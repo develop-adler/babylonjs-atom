@@ -2,20 +2,20 @@
 # yarn lockfile v1
 
 
-"@babylonjs/core@^6.19.1":
-  version "6.19.1"
-  resolved "https://registry.yarnpkg.com/@babylonjs/core/-/core-6.19.1.tgz#42cd7b7be8289b6d2faba46f4d880e56172bce8e"
-  integrity sha512-dpfOi1iRJaq/Fj5N+EbjyXDCdLeQNI0bZwyF4zORTR3/oSYspweQuXpGaUGHEPYVOnlTLEWRU3/QwlOm0X3Ugg==
+"@babylonjs/core@^6.21.0":
+  version "6.21.0"
+  resolved "https://registry.yarnpkg.com/@babylonjs/core/-/core-6.21.0.tgz#6b815c9a18f38865b7d36270dcb912f0c4bf6d9d"
+  integrity sha512-8g+HPZ1aNKoqad/lq85iYngtGZIJh40Hkk2ybj9ilZOk53VAp6qYdm5TFCFhsYjuQeWzFT5a4QtiwskC8S8DUg==
 
-"@babylonjs/gui-editor@^6.19.1":
-  version "6.19.1"
-  resolved "https://registry.yarnpkg.com/@babylonjs/gui-editor/-/gui-editor-6.19.1.tgz#47b1bc4401a4b0ccc27d38b1f329402f94ee6684"
-  integrity sha512-9xQVrKCB07T+enVy7R+kyw5uWxNw/IuMB95t/1h6mYZOqeHh8pvg8ZDVqVzK/r0Miv5UqCPCessQRBCsdA3+iA==
+"@babylonjs/gui-editor@^6.21.0":
+  version "6.21.0"
+  resolved "https://registry.yarnpkg.com/@babylonjs/gui-editor/-/gui-editor-6.21.0.tgz#2a0dbed58627aee9cffc9ff6c526cde909c19ed5"
+  integrity sha512-z8gOMNc0ivHvAKLWGg8vGUiqK2vrDwkAqFlL0Chn5xwlXJXSJK2wTwsjtJGAV+OnFIh+lK5qzAkBSKz+AziEOQ==
 
-"@babylonjs/gui@^6.19.1":
-  version "6.19.1"
-  resolved "https://registry.yarnpkg.com/@babylonjs/gui/-/gui-6.19.1.tgz#5dfc01011fb90dbdb217c780b6b975ea71177d25"
-  integrity sha512-k5sBavM0uJj7vYkPBveXxmmtp24er/XrQZBhKkvvW9tM8+cyKkHV7WCE6SJPvTQzNuUTp9NrPMbQz5He842qhQ==
+"@babylonjs/gui@^6.21.0":
+  version "6.21.0"
+  resolved "https://registry.yarnpkg.com/@babylonjs/gui/-/gui-6.21.0.tgz#96f90c05089ff52ce0e33dfa3adc825115cd6e01"
+  integrity sha512-1aDUy5wd9ysI3V8ScLzDkdIUFdqyE5k3kWl3iJ9iPKIJuZXfIWjK2Do0QbxDrd0gsAuRE97ZgZry3gVBcXfkbw==
 
 "@babylonjs/havok@^1.1.4":
   version "1.1.4"
@@ -24,29 +24,29 @@
   dependencies:
     "@types/emscripten" "^1.39.6"
 
-"@babylonjs/inspector@^6.19.1":
-  version "6.19.1"
-  resolved "https://registry.yarnpkg.com/@babylonjs/inspector/-/inspector-6.19.1.tgz#bb24fd4981614a8fbdb598c05dcb714b8761c9eb"
-  integrity sha512-MYXZac7hydQLTvr7hT4PB8Awe3qS8t5A1x5GrKA+zFXoXuYgWlhdzMOaR8p554Cx/nD0wt5q15G9qVvlH8eKKQ==
+"@babylonjs/inspector@^6.21.0":
+  version "6.21.0"
+  resolved "https://registry.yarnpkg.com/@babylonjs/inspector/-/inspector-6.21.0.tgz#9ddffdaee9ad05e778b5fe586d0e5ffbe0314297"
+  integrity sha512-hEzUqGWHhmWqzUGnRZWz+N9OjBQkwRF+KtmwYLsYArueDF26rpXV2E6U8Vw9Xi1TkkEBqYK8QXyagbTTqAn8TQ==
   dependencies:
     "@fortawesome/fontawesome-svg-core" "^6.1.0"
     "@fortawesome/free-regular-svg-icons" "^6.0.0"
     "@fortawesome/free-solid-svg-icons" "^6.0.0"
 
-"@babylonjs/loaders@^6.19.1":
-  version "6.19.1"
-  resolved "https://registry.yarnpkg.com/@babylonjs/loaders/-/loaders-6.19.1.tgz#17bcbd8010d70e60db06ca78a8b2accfdf1163f1"
-  integrity sha512-+GzO9O0Nsevyrau1Ohw7l4pAuj65wBMby89jNrYwafoQJUzc2vDVsJs7JRNobrFpOx3IfQgzFldv90AxPkbbmw==
+"@babylonjs/loaders@^6.21.0":
+  version "6.21.0"
+  resolved "https://registry.yarnpkg.com/@babylonjs/loaders/-/loaders-6.21.0.tgz#ed57001d19f1de4a96d09c12fb31e2cb15f2ac10"
+  integrity sha512-pxliefbWQTu0Etr0YcLkKgxQDVQRPi+KU2yYcTyljlxyQlW0qMIa0+y3Z+N5yV3SSZRVLaXsPiLHq1td5mR7Cg==
 
-"@babylonjs/materials@^6.19.1":
-  version "6.19.1"
-  resolved "https://registry.yarnpkg.com/@babylonjs/materials/-/materials-6.19.1.tgz#e743ad2cc940ee99c748cd209907026730029237"
-  integrity sha512-nJXouKJH+hoBYgpMdyamiOD7Hu69N2U8A084mCf6oDMgePVdVZ/YDb0v/itEPClzIi2Jmtt0f5fD41djQsgsDg==
+"@babylonjs/materials@^6.21.0":
+  version "6.21.0"
+  resolved "https://registry.yarnpkg.com/@babylonjs/materials/-/materials-6.21.0.tgz#36d3bc40f9c5f12ec41b7d4983719e0ea17a9210"
+  integrity sha512-f6rYMq3uchyjD2UX5+uPpUudhiQTYwMIwDlvq+7jMorKs5qhPKGAvGDGjknNA/GEdafZgYVakRzjq0+WjtIpMw==
 
-"@babylonjs/serializers@^6.19.1":
-  version "6.19.1"
-  resolved "https://registry.yarnpkg.com/@babylonjs/serializers/-/serializers-6.19.1.tgz#c2ec4b63e56896d1f3c0dd4dab0fb7f659a61f51"
-  integrity sha512-xcksQOtpM+s9v9EKFh+/c56Hl9e+kGHQsmyxS6DbRrYi02bgkKBngCc5Y4luMYM3+xIlWs81RPwsp3m94oY9Yw==
+"@babylonjs/serializers@^6.21.0":
+  version "6.21.0"
+  resolved "https://registry.yarnpkg.com/@babylonjs/serializers/-/serializers-6.21.0.tgz#5fed950de4bd85024e861e1e78e8516911fc595a"
+  integrity sha512-b3Fc2z9hCgJuIb0Q9wB39O13oRBjlP5oqdkHS9IChPJA4gjbL32Pyx3coGBRESPlWD2nYDmTSlwb/MsNVnzMZQ==
 
 "@esbuild/android-arm64@0.18.20":
   version "0.18.20"

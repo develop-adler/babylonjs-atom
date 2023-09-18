@@ -10,12 +10,12 @@
     "lint": "eslint 'src/**/*.{js,ts}'"
   },
   "devDependencies": {
-    "@babylonjs/gui": "^6.19.1",
-    "@babylonjs/gui-editor": "^6.19.1",
+    "@babylonjs/gui": "^6.21.0",
+    "@babylonjs/gui-editor": "^6.21.0",
     "@babylonjs/havok": "^1.1.4",
-    "@babylonjs/inspector": "^6.19.1",
-    "@babylonjs/materials": "^6.19.1",
-    "@babylonjs/serializers": "^6.19.1",
+    "@babylonjs/inspector": "^6.21.0",
+    "@babylonjs/materials": "^6.21.0",
+    "@babylonjs/serializers": "^6.21.0",
     "@typescript-eslint/eslint-plugin": "^5.57.0",
     "@typescript-eslint/parser": "^5.57.0",
     "eslint": "^8.37.0",
@@ -26,8 +26,8 @@
     "vite": "^4.4.9"
   },
   "dependencies": {
-    "@babylonjs/core": "^6.19.1",
-    "@babylonjs/loaders": "^6.19.1",
+    "@babylonjs/core": "^6.21.0",
+    "@babylonjs/loaders": "^6.21.0",
     "hammerjs": "^2.0.8",
     "nipplejs": "^0.10.1"
   }
