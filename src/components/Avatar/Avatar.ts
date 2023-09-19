@@ -129,15 +129,15 @@ class Avatar {
             console.error(`Part index cannot be negative`);
             return;
         }
-        if (partName === "body") {
+        if (partName.includes("body")) {
             console.error(`Cannot change body`);
             return;
         }
-        if (partName === "eyeL") {
+        if (partName.includes("eyeL")) {
             console.error(`Cannot change eyeL`);
             return;
         }
-        if (partName === "eyeR") {
+        if (partName.includes("eyeR")) {
             console.error(`Cannot change eyeR`);
             return;
         }
@@ -154,6 +154,7 @@ class Avatar {
                     ([animationName, animationGroup], index) => {
                         animationGroups.forEach(animation => {
                             if (animationGroups[index].name === animationName) {
+                                animationGroup.stop();
                                 animation = animationGroup;
                                 return;
                             }
@@ -162,7 +163,7 @@ class Avatar {
                 );
 
                 meshes.forEach(mesh => {
-                    // console.log('Model:', mesh.name);
+                    console.log('Model:', mesh.name);
         
                     // assign root as parent
                     mesh.parent = this._root;
