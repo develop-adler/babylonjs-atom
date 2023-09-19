@@ -77,6 +77,9 @@ class Avatar {
     public get animations(): Record<string, AnimationGroup> {
         return this._animations;
     }
+    public get gender(): "male" | "female" {
+        return this._gender;
+    }
     public get parts(): GenderParts {
         return this._parts;
     }
