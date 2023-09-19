@@ -154,7 +154,7 @@ class Avatar {
                     ([animationName, animationGroup], index) => {
                         animationGroups.forEach(animation => {
                             if (animationGroups[index].name === animationName) {
-                                animationGroup.stop();
+                                animation.stop();
                                 animation = animationGroup;
                                 return;
                             }
