@@ -140,19 +140,15 @@ class Avatar {
 
         // load parts
         Object.entries(this._parts).forEach(([partName]) => {
-            this.loadPart(partName, 0);
+            this.loadPart(partName);
         });
 
         // localStorage.setItem("avatarParts", JSON.stringify(this._parts));
     }
 
-    public async loadPart(partName: string, partIndex: number): Promise<void> {
-        if (partName in this._parts === false) {
+    public async loadPart(partName: string): Promise<void> {
+        if (partName in this._parts === false || partName in MALE_PARTS === false) {
             console.error(`Part ${partName} does not exist`);
-            return;
-        }
-        if (partIndex < 0 || partIndex >= this._parts[partName as keyof GenderParts].length) {
-            console.error(`Part ${partName} does not have index ${partIndex}`);
             return;
         }
         // if (partName.includes("body")) {
@@ -168,7 +164,7 @@ class Avatar {
         //     return;
         // }
 
-        const partToLoad = this._parts[partName as keyof GenderParts][partIndex];
+        const partToLoad = this._parts[partName as keyof GenderParts][0];
 
         SceneLoader.ImportMesh(
             "",
