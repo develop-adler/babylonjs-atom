@@ -261,7 +261,7 @@ class AvatarController {
             this._joystick?.getData()?.angle?.radian
         ) {
             this._isMoving = true;
-            // this._isDancing = false;
+            this._isDancing = false;
 
             // calculate direction from joystick
             // add additional 270 degree to the right
@@ -306,7 +306,7 @@ class AvatarController {
             this._meshBody.setLinearVelocity(this.moveDirection);
         } else if (forward || backward || left || right) {
             this._isMoving = true;
-            // this._isDancing = false;
+            this._isDancing = false;
 
             this.frontVector.set(0, 0, Number(forward) - Number(backward));
             this.sideVector.set(Number(left) - Number(right), 0, 0);
