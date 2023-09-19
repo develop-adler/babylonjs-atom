@@ -126,7 +126,26 @@ class Avatar {
             console.error(`Part ${partName} does not exist`);
             return;
         }
-
+        if (partIndex >= this._parts[partName as keyof GenderParts].length) {
+            console.error(`Part ${partName} does not have index ${partIndex}`);
+            return;
+        }
+        if (partIndex < 0) {
+            console.error(`Part index cannot be negative`);
+            return;
+        }
+        if (partName === "body") {
+            console.error(`Cannot change body`);
+            return;
+        }
+        if (partName === "eyeL") {
+            console.error(`Cannot change eyeL`);
+            return;
+        }
+        if (partName === "eyeR") {
+            console.error(`Cannot change eyeR`);
+            return;
+        }
     }
 
     private generateCollision(): void {
