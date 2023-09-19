@@ -7,11 +7,11 @@ import { HavokPhysicsWithBindings } from "@babylonjs/havok";
 
 import Avatar from "./Avatar/Avatar";
 import AvatarController from "./Avatar/AvatarController";
-import Joystick from "./Joystick";
+import Joystick from "./OverlayElements/Joystick";
 import Atom from "./Atoms/Atom";
 import ClassicRoom from "./Atoms/ClassicRoom";
 // import Furniture from "./AtomElements/Furniture";
-import LoadingUI from "./LoadingUI";
+import LoadingUI from "./OverlayElements/LoadingUI";
 
 import { SCENE_SETTINGS } from "../utils/global";
 import { isMobile } from "../utils/functions";
@@ -239,6 +239,12 @@ class Core {
         this._scene.environmentTexture = envMapTexture;
         this._scene.createDefaultSkybox(envMapTexture, true);
         this._scene.environmentIntensity = 0.5;
+
+        // enable animation blending
+        this._scene.animationPropertiesOverride = new BABYLON.AnimationPropertiesOverride();
+        this._scene.animationPropertiesOverride.enableBlending = true;
+        this._scene.animationPropertiesOverride.blendingSpeed = 0.07;
+        this._scene.animationPropertiesOverride.loopMode = 1;
 
         // Enable physics
         const gravityVector = new BABYLON.Vector3(0, -19.62, 0);

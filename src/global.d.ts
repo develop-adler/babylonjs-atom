@@ -11,7 +11,7 @@ declare global {
         rightBack: Picture | null;
     }
 
-    type GenderParts = {
+    interface GenderParts {
         eyeL: Array<string>;
         eyeR: Array<string>;
         bottom: Array<string>;

@@ -19,7 +19,7 @@ class Joystick {
                 position: absolute;
                 bottom: 15%;
                 left: 15%;
-                z-index: 10;
+                z-index: 2;
                 scale: 1.5;
 
                 @media screen and (max-width: 768px) {

@@ -10,7 +10,7 @@ import {
     Scene,
     Vector3,
 } from "@babylonjs/core";
-import Joystick from "../Joystick";
+import Joystick from "../OverlayElements/Joystick";
 import { EventData, JoystickOutputData } from "nipplejs";
 import { SCENE_SETTINGS } from "../../utils/global";
 import Avatar from "./Avatar";
@@ -39,10 +39,10 @@ class AvatarController {
     private _raycastResult: PhysicsRaycastResult;
 
     private _isActive: boolean = false;
-    // private _isDancing: boolean = false;
-    // private _isCrouching: boolean = false;
+    private _isDancing: boolean = false;
+    private _isCrouching: boolean = false;
     private _isMoving: boolean = false;
-    // private _isRunning: boolean = false;
+    private _isRunning: boolean = false;
 
     private keyStatus: KeyStatus = {
         " ": false, // space
@@ -63,10 +63,9 @@ class AvatarController {
     private sideVector: Vector3 = Vector3.Zero();
 
     private static readonly AVATAR_HEAD_HEIGHT: number = 1.65;
-    // private static readonly CROUCH_SPEED: number = 0.015;
+    private static readonly CROUCH_SPEED: number = 0.015;
     private static readonly WALK_SPEED: number = 0.03;
-    // private static readonly RUN_SPEED: number = 0.08;
-    // private static readonly JUMP_FORCE: number = 1000;
+    private static readonly RUN_SPEED: number = 0.08;
     private static readonly DISTANCE_FROM_WALL: number = 0.8;
 
     private animSpeed: number = 1.0;
@@ -132,22 +131,19 @@ class AvatarController {
                 const key = e.sourceEvent.key.toLowerCase();
 
                 switch (key) {
-                    // case "shift":
-                    //     // Slow down if shift is held
-                    //     this.moveSpeed = AvatarController.CROUCH_SPEED;
-                    //     this._isCrouching = true;
-                    //     // Stop dancing animation
-                    //     this._isDancing = false;
-                    //     break;
-                    // case "control":
-                    //     this._toggleRun();
-                    //     break;
-                    // case "g":
-                    //     this._isDancing = !this._isDancing;
-                    //     break;
-                    // case " ":
-                    //     this._jump();
-                    //     break;
+                    case "shift":
+                        // Slow down if shift is held
+                        this.moveSpeed = AvatarController.CROUCH_SPEED;
+                        this._isCrouching = true;
+                        // Stop dancing animation
+                        this._isDancing = false;
+                        break;
+                    case "control":
+                        this._toggleRun();
+                        break;
+                    case "g":
+                        this._isDancing = !this._isDancing;
+                        break;
                     default:
                         if (key in this.keyStatus) {
                             this.keyStatus[key as keyof KeyStatus] = true;
@@ -161,30 +157,20 @@ class AvatarController {
             new ExecuteCodeAction(ActionManager.OnKeyUpTrigger, e => {
                 const key = e.sourceEvent.key.toLowerCase();
 
-                // if (key === "shift") {
-                //     this._isCrouching = false;
+                if (key === "shift") {
+                    this._isCrouching = false;
 
-                //     if (!this._isRunning) {
-                //         this.moveSpeed = AvatarController.WALK_SPEED;
-                //     } else {
-                //         this.moveSpeed = AvatarController.RUN_SPEED;
-                //     }
-                // }
+                    if (!this._isRunning) {
+                        this.moveSpeed = AvatarController.WALK_SPEED;
+                    } else {
+                        this.moveSpeed = AvatarController.RUN_SPEED;
+                    }
+                }
                 if (key in this.keyStatus) {
                     this.keyStatus[key as keyof KeyStatus] = false;
                 }
             }),
         );
-
-        // this._scene.onKeyboardObservable.add(kbInfo => {
-        //     if (kbInfo.type === KeyboardEventTypes.KEYDOWN) {
-        //         switch (kbInfo.event.key.toLowerCase().trim()) {
-        //             case "":
-        //                 this._jump();
-        //                 break;
-        //         }
-        //     }
-        // });
 
         this._isActive = true;
 
@@ -204,27 +190,25 @@ class AvatarController {
 
     private _updateCharacterAnimation(): void {
         if (this._isMoving) {
-            // if (this._isCrouching) {
-            //     // play sneakwalk animation if shift is held
-            //     this._playAnimation("sneakwalk");
-            // } else {
-            //     if (!this._isRunning) {
-            //         this._playAnimation("run");
-            //         return;
-            //     }
-            //     this._playAnimation("walk");
-            // }
-            this._playAnimation("Walking");
+            if (this._isCrouching) {
+                this._playAnimation("CrouchWalk");
+            } else {
+                if (this._isRunning) {
+                    this._playAnimation("Run");
+                } else {
+                    this._playAnimation("Walk");
+                }
+            }
         } else {
             switch (true) {
-                // // play dance animation if g is pressed
-                // case this._isDancing:
-                //     this._playAnimation("rumba");
-                //     break;
-                // // play crouch animation if shift is held
-                // case this._isCrouching:
-                //     this._playAnimation("crouch");
-                //     break;
+                // play dance animation if g is pressed
+                case this._isDancing:
+                    this._playAnimation("Dance");
+                    break;
+                // play crouch animation if shift is held
+                case this._isCrouching:
+                    this._playAnimation("Crouch");
+                    break;
                 // play idle animation if no movement keys are pressed
                 default:
                     this._playAnimation("Idle");
@@ -448,26 +432,15 @@ class AvatarController {
         }
     }
 
-    // private _jump(): void {
-    //     if (!this._isActive) return;
-
-    //     // make mesh jump
-    //     this._meshBody.applyImpulse(
-    //         new Vector3(0, AvatarController.JUMP_FORCE, 0),
-    //         this._avatarRoot.position,
-    //     );
-    //     console.log("called jump");
-    // }
-
-    // private _toggleRun(): void {
-    //     this._isRunning = !this._isRunning;
-    //     this.moveSpeed = this._isRunning
-    //         ? AvatarController.RUN_SPEED
-    //         : AvatarController.WALK_SPEED;
-    // }
+    private _toggleRun(): void {
+        this._isRunning = !this._isRunning;
+        this.moveSpeed = this._isRunning
+            ? AvatarController.RUN_SPEED
+            : AvatarController.WALK_SPEED;
+    }
 
     private _calculateDirectionOffset(): number {
-        let directionOffset = 0; // w
+        let directionOffset = 0;
 
         switch (true) {
             case this.keyStatus["w"] || this.keyStatus["arrowup"]:

@@ -1,7 +1,6 @@
 import {
     AbstractMesh,
     AnimationGroup,
-    AnimationPropertiesOverride,
     Mesh,
     MeshBuilder,
     PhysicsAggregate,
@@ -17,20 +16,20 @@ import Atom from "../Atoms/Atom";
 
 // all male parts' file name
 const MALE_PARTS: GenderParts = {
-    eyeL: ['m_eyeL_1'],
-    eyeR: ['m_eyeR_1'],
-    bottom: ['m_pants_1', 'm_pants_2'],
-    body: ['m_body_1'],
-    hair: ['m_hair_1', 'm_hair_2', 'm_hair_3'],
-    head: ['m_head_1', 'm_head_2'],
-    shoes: ['m_shoes_1', 'm_shoes_2'],
-    top: ['m_top_1', 'm_top_2'],
+    body: ["m_body_1"],
+    eyeL: ["m_eyeL_1"],
+    eyeR: ["m_eyeR_1"],
+    bottom: ["m_pants_1", "m_pants_2"],
+    hair: ["m_hair_1", "m_hair_2", "m_hair_3"],
+    head: ["m_head_1", "m_head_2"],
+    shoes: ["m_shoes_1", "m_shoes_2"],
+    top: ["m_top_1", "m_top_2"],
 };
 
 class Avatar {
     private _scene: Scene;
     private _atom: Atom;
-    private _gender: "male" | "female" = "male";
+    // private _gender: "male" | "female" = "male";
     private _root!: Mesh;
     private _meshes!: AbstractMesh[];
     private _animations: Record<string, AnimationGroup> = {};
@@ -75,34 +74,37 @@ class Avatar {
     public async init(): Promise<void> {
         const { meshes, animationGroups } = await SceneLoader.ImportMeshAsync(
             "",
-            "/models/avatar/male/",
-            "m_default.glb",
+            "/models/avatar/",
+            "male.glb",
             this._scene,
         );
+        this._root.scaling.scaleInPlace(0.01);
         this._root.position.copyFrom(meshes[0].position);
         this._root.rotationQuaternion = meshes[0].rotationQuaternion;
 
         this._meshes = meshes;
 
-        // animation blending
-        this._scene.animationPropertiesOverride = new AnimationPropertiesOverride();
-        this._scene.animationPropertiesOverride.enableBlending = true;
-        this._scene.animationPropertiesOverride.blendingSpeed = 0.07;
-        this._scene.animationPropertiesOverride.loopMode = 1;
-
         // add animation groups
-        animationGroups.forEach((animation) => {
+        animationGroups.forEach(animation => {
             this._animations[animation.name] = animation;
         });
 
-        // add meshes to reflection list
-        // and assign root as parent
-        this._meshes.forEach((mesh) => {
+        this._meshes.forEach(mesh => {
+            // console.log('Model:', mesh.name);
+
+            // assign root as parent
             mesh.parent = this._root;
-            this._atom.addMeshToReflectionList(mesh as Mesh);
+
+            // by default, only show "_1" meshes
+            if (mesh.name.includes("_2")) {
+                mesh.isVisible = false;
+            } else {
+                // add meshes to reflection list
+                this._atom.addMeshToReflectionList(mesh as Mesh);
+            }
         });
 
-        // generate shadows
+        // generate shadows for all meshes
         if (this._shadowGenerators.length) {
             this._shadowGenerators?.forEach(generator => {
                 this._meshes.forEach(mesh => {
@@ -119,40 +121,12 @@ class Avatar {
         });
     }
 
-    public async loadModel(): Promise<void> {
-        const path = this._gender === "male" ? "/models/avatar/male/" : "/models/avatar/female/";
-        const { meshes } = await SceneLoader.ImportMeshAsync(
-            "",
-            path,
-            "m_default.glb",
-            this._scene,
-        );
-        this._meshes = meshes;
-
-        // add meshes to reflection list
-        this._meshes.forEach((mesh) => {
-            mesh.parent = this._root;
-            this._atom.addMeshToReflectionList(mesh as Mesh);
-        });
-
-        // generate shadows
-        if (this._shadowGenerators.length) {
-            this._shadowGenerators?.forEach(generator => {
-                this._meshes.forEach(mesh => {
-                    mesh.receiveShadows = true;
-                    generator.addShadowCaster(mesh);
-                });
-            });
+    public async loadPart(partName: string, partIndex: number): Promise<void> {
+        if (partName in this._parts === false) {
+            console.error(`Part ${partName} does not exist`);
+            return;
         }
-    }
 
-    public async loadParts(partName: string, partIndex: number): Promise<void> {
-        console.log(partName);
-        console.log(partIndex);
-        Object.entries(this._parts).forEach(([name, list]) => {
-            console.log(name);
-            console.log(list);
-        })
     }
 
     private generateCollision(): void {
@@ -198,13 +172,14 @@ class Avatar {
     }
 
     public show(): void {
-        this._meshes.forEach((mesh) => {
+        this._meshes.forEach(mesh => {
+            if (mesh.name.includes("_2")) return;
             mesh.isVisible = true;
         });
     }
 
     public hide(): void {
-        this._meshes.forEach((mesh) => {
+        this._meshes.forEach(mesh => {
             mesh.isVisible = false;
         });
     }
