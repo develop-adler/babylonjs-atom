@@ -29,7 +29,7 @@ const MALE_PARTS: GenderParts = {
 class Avatar {
     private _scene: Scene;
     private _atom: Atom;
-    // private _gender: "male" | "female" = "male";
+    private _gender: "male" | "female" = "male";
     private _root!: Mesh;
     private _meshes!: AbstractMesh[];
     private _animations: Record<string, AnimationGroup> = {};
@@ -74,8 +74,8 @@ class Avatar {
     public async init(): Promise<void> {
         const { meshes, animationGroups } = await SceneLoader.ImportMeshAsync(
             "",
-            "/models/avatar/",
-            "male.glb",
+            `/models/avatar/${this._gender}/`,
+            "m_default.glb",
             this._scene,
         );
         this._root.scaling.scaleInPlace(0.01);
@@ -95,13 +95,8 @@ class Avatar {
             // assign root as parent
             mesh.parent = this._root;
 
-            // by default, only show "_1" meshes
-            if (mesh.name.includes("_2")) {
-                mesh.isVisible = false;
-            } else {
-                // add meshes to reflection list
-                this._atom.addMeshToReflectionList(mesh as Mesh);
-            }
+            // add meshes to reflection list
+            this._atom.addMeshToReflectionList(mesh as Mesh);
         });
 
         // generate shadows for all meshes
@@ -146,6 +141,37 @@ class Avatar {
             console.error(`Cannot change eyeR`);
             return;
         }
+
+        SceneLoader.ImportMesh(
+            "",
+            `/models/avatar/${this._gender}/`,
+            `${this._parts[partName as keyof GenderParts][partIndex]}.glb`,
+            this._scene,
+            (meshes, _particleSystems, _skeleton, animationGroups) => {
+                console.log(meshes);
+
+                Object.entries(this._animations).forEach(
+                    ([animationName, animationGroup], index) => {
+                        animationGroups.forEach(animation => {
+                            if (animationGroups[index].name === animationName) {
+                                animation = animationGroup;
+                                return;
+                            }
+                        });
+                    },
+                );
+
+                meshes.forEach(mesh => {
+                    // console.log('Model:', mesh.name);
+        
+                    // assign root as parent
+                    mesh.parent = this._root;
+        
+                    // add meshes to reflection list
+                    this._atom.addMeshToReflectionList(mesh as Mesh);
+                });
+            },
+        );
     }
 
     private generateCollision(): void {

@@ -65,7 +65,7 @@ class AvatarController {
     private static readonly AVATAR_HEAD_HEIGHT: number = 1.65;
     private static readonly CROUCH_SPEED: number = 0.015;
     private static readonly WALK_SPEED: number = 0.03;
-    private static readonly RUN_SPEED: number = 0.08;
+    private static readonly RUN_SPEED: number = 0.06;
     private static readonly DISTANCE_FROM_WALL: number = 0.8;
 
     private animSpeed: number = 1.0;
