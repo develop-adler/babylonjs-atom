@@ -435,8 +435,8 @@ class AvatarController {
     private _toggleRun(): void {
         this._isRunning = !this._isRunning;
         this.moveSpeed = this._isRunning
-            ? AvatarController.RUN_SPEED
-            : AvatarController.WALK_SPEED;
+            ? AvatarController.RUN_SPEED * (this._avatar.gender === "female" ? 0.7 : 1)
+            : AvatarController.WALK_SPEED * (this._avatar.gender === "female" ? 0.7 : 1);
     }
 
     private _calculateDirectionOffset(): number {
