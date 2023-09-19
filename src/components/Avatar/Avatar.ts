@@ -10,6 +10,7 @@ import {
     Scene,
     SceneLoader,
     ShadowGenerator,
+    Skeleton,
     Vector3,
 } from "@babylonjs/core";
 import Atom from "../Atoms/Atom";
@@ -32,11 +33,12 @@ class Avatar {
     private _gender: "male" | "female" = "male";
     private _root!: Mesh;
     private _meshes!: AbstractMesh[];
+    private _skeleton!: Skeleton;
     private _animations: Record<string, AnimationGroup> = {};
     private _capsuleMesh!: Mesh;
     private _physicsAggregate!: PhysicsAggregate;
     private _shadowGenerators: ShadowGenerator[] = [];
-    private _parts: GenderParts = MALE_PARTS;
+    private _parts: GenderParts;
 
     private static readonly CAPSULE_HEIGHT = 1.75;
     private static readonly CAPSULE_RADIUS = 0.3;
@@ -46,6 +48,17 @@ class Avatar {
         this._atom = atom;
         this._shadowGenerators = shadowGenerators ?? [];
         this._root = new Mesh("root", this._scene);
+        this._parts = localStorage.getItem("avatarParts") ? JSON.parse(localStorage.getItem("avatarParts")!) : {
+            body: ["m_body_1"],
+            eyeL: ["m_eyeL_1"],
+            eyeR: ["m_eyeR_1"],
+            bottom: ["m_pants_1"],
+            hair: ["m_hair_2"],
+            head: ["m_head_1"],
+            shoes: ["m_shoes_1"],
+            top: ["m_top_2"],
+        };
+        // JSON.parse(localStorage.getItem("avatarParts") ?? "{}") ;
         this.generateCollision();
     }
 
@@ -72,12 +85,14 @@ class Avatar {
     }
 
     public async init(): Promise<void> {
-        const { meshes, animationGroups } = await SceneLoader.ImportMeshAsync(
+        const { meshes, animationGroups, skeletons } = await SceneLoader.ImportMeshAsync(
             "",
             `/models/avatar/${this._gender}/`,
             "m_default.glb",
             this._scene,
         );
+        this._skeleton = skeletons[0];
+
         this._root.scaling.scaleInPlace(0.01);
         this._root.position.copyFrom(meshes[0].position);
         this._root.rotationQuaternion = meshes[0].rotationQuaternion;
@@ -114,6 +129,21 @@ class Avatar {
             this._root.position.copyFrom(this._capsuleMesh.position);
             this._root.position.y -= Avatar.CAPSULE_HEIGHT * 0.5;
         });
+
+        localStorage.setItem("avatarGender", this._gender);
+
+        // dispose default model
+        this._meshes.forEach(mesh => {
+            this._scene.removeMesh(mesh);
+            mesh.dispose();
+        });
+
+        // load parts
+        Object.entries(this._parts).forEach(([partName]) => {
+            this.loadPart(partName, 0);
+        });
+
+        // localStorage.setItem("avatarParts", JSON.stringify(this._parts));
     }
 
     public async loadPart(partName: string, partIndex: number): Promise<void> {
@@ -121,52 +151,40 @@ class Avatar {
             console.error(`Part ${partName} does not exist`);
             return;
         }
-        if (partIndex >= this._parts[partName as keyof GenderParts].length) {
+        if (partIndex < 0 || partIndex >= this._parts[partName as keyof GenderParts].length) {
             console.error(`Part ${partName} does not have index ${partIndex}`);
             return;
         }
-        if (partIndex < 0) {
-            console.error(`Part index cannot be negative`);
-            return;
-        }
-        if (partName.includes("body")) {
-            console.error(`Cannot change body`);
-            return;
-        }
-        if (partName.includes("eyeL")) {
-            console.error(`Cannot change eyeL`);
-            return;
-        }
-        if (partName.includes("eyeR")) {
-            console.error(`Cannot change eyeR`);
-            return;
-        }
+        // if (partName.includes("body")) {
+        //     console.error(`Cannot change body`);
+        //     return;
+        // }
+        // if (partName.includes("eyeL")) {
+        //     console.error(`Cannot change eyeL`);
+        //     return;
+        // }
+        // if (partName.includes("eyeR")) {
+        //     console.error(`Cannot change eyeR`);
+        //     return;
+        // }
+
+        const partToLoad = this._parts[partName as keyof GenderParts][partIndex];
 
         SceneLoader.ImportMesh(
             "",
             `/models/avatar/${this._gender}/`,
-            `${this._parts[partName as keyof GenderParts][partIndex]}.glb`,
+            `${partToLoad}.glb`,
             this._scene,
-            (meshes, _particleSystems, _skeleton, animationGroups) => {
-                console.log(meshes);
-
-                Object.entries(this._animations).forEach(
-                    ([animationName, animationGroup], index) => {
-                        animationGroups.forEach(animation => {
-                            if (animationGroups[index].name === animationName) {
-                                animation.stop();
-                                animation = animationGroup;
-                                return;
-                            }
-                        });
-                    },
-                );
-
-                meshes.forEach(mesh => {
-                    console.log('Model:', mesh.name);
-        
+            (meshes, _particleSystems, _skeletons) => {
+                meshes.forEach((mesh, index) => {
                     // assign root as parent
                     mesh.parent = this._root;
+
+                    if (index === 0) return;
+
+                    // assign skeleton to default model skeleton
+                    // to use the same animations
+                    mesh.skeleton = this._skeleton;
         
                     // add meshes to reflection list
                     this._atom.addMeshToReflectionList(mesh as Mesh);
