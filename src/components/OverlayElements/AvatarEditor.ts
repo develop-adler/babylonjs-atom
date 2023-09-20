@@ -5,8 +5,6 @@ class AvatarEditor {
     private _core: Core;
     private _overlayContainer: HTMLDivElement;
     private _editorOverlay: HTMLDivElement;
-    // private _avatarViewer!: HTMLDivElement;
-    private _partSelection!: HTMLDivElement;
 
     private _currentCategory: string = "gender";
     private _partStyleImageElements: Array<HTMLImageElement | null>;
@@ -28,41 +26,19 @@ class AvatarEditor {
         this._editorOverlay.style.pointerEvents = "all";
         this._editorOverlay.style.background = "rgba(255, 255, 255, 0.9)";
         this._editorOverlay.style.backdropFilter = "blur(0.3125rem)";
+        this._editorOverlay.style.borderLeft = "1px solid #000";
+        this._editorOverlay.style.overflowX = "hidden";
+        this._editorOverlay.style.overflowY = "auto";
 
         this._overlayContainer.appendChild(this._editorOverlay);
         this._partStylePath = "/images/parts/";
         this._partStyleImageList = [];
         this._partStyleImageElements = [];
 
-        // this._createAvatarView();
-        this._createPartSelection();
+        this._createBodyPartSelectionContainer();
     }
     public get editorOverlay(): HTMLDivElement {
         return this._editorOverlay;
-    }
-
-    // private _createAvatarView(): void {
-    //     this._avatarViewer = document.createElement("div");
-    //     this._avatarViewer.id = "avatarViewer";
-    //     this._avatarViewer.style.width = "45%";
-
-    //     this._editorOverlay.appendChild(this._avatarViewer);
-    // }
-
-    private _createPartSelection(): void {
-        this._partSelection = document.createElement("div");
-        this._partSelection.id = "partSelection";
-        this._partSelection.style.display = "flex";
-        this._partSelection.style.flexDirection = "column";
-        // this._partSelection.style.alignItems = "center";
-        // this._partSelection.style.justifyContent = "center";
-        // this._partSelection.style.textAlign = "center";
-        this._partSelection.style.flexGrow = "1";
-        this._partSelection.style.borderLeft = "1px solid #000";
-
-        this._editorOverlay.appendChild(this._partSelection);
-
-        this._createBodyPartSelectionContainer();
     }
 
     private _createBodyPartSelectionContainer(): void {
@@ -74,19 +50,19 @@ class AvatarEditor {
             <hr id="bodyPartSelectionButtonContainerLinebreak" />
         `;
 
-        this._partSelection.appendChild(bodyPartSelectionContainer);
+        this._editorOverlay.appendChild(bodyPartSelectionContainer);
 
         const buttonCSS = document.createElement("style");
         buttonCSS.innerHTML = `
             #bodyPartSelectionContainer {
                 display: block;
-                width: auto;
+                width: 100%;
                 height: auto;
-                border: 2px solid red;
             }
 
             #bodyPartSelectionButtonContainer {
                 display: flex;
+                flex-wrap: wrap;
                 margin-top: 1rem;
             }
 
@@ -94,7 +70,7 @@ class AvatarEditor {
                 height: 0.2rem;
                 border: none;
                 background: #00000066;
-                margin: 2rem 0;
+                margin: 2rem 1rem; // top bottom, left right
             }
             
             .bodyPartSelectionButton {
@@ -103,7 +79,7 @@ class AvatarEditor {
                 justify-content: center;
                 text-align: center;
                 width: auto;
-                height: 2rem;
+                height: auto;
                 border: none;
                 border-bottom: 0.2rem solid #FC4F9100;
                 border-radius: 0;
@@ -234,7 +210,7 @@ class AvatarEditor {
             bodyPartSelectionButtonContainer.appendChild(bodyPartSelectionButton);
         });
 
-        // set to gender by default
+        // set to gender category by default
         this._partStyleImageList = ["male", "female"];
         this._partStylePath = "/images/parts/";
 
@@ -296,6 +272,22 @@ class AvatarEditor {
                         this._core.avatar.changeGender(name as Gender);
                     }
                 } else {
+                    const styleName =
+                        (this._core.avatar.gender === "male" ? "m_" : "f_") +
+                        this._currentCategory +
+                        "_" +
+                        name;
+
+                    // don't load model if the style is already selected
+                    if (
+                        styleName ===
+                        this._core.avatar.parts[
+                        this._currentCategory as keyof GenderParts
+                        ][0]
+                    ) {
+                        return;
+                    }
+
                     this._core.avatar.changePartStyle(
                         this._currentCategory,
                         name as keyof GenderParts,

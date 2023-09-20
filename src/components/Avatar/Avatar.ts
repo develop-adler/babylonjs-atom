@@ -245,7 +245,7 @@ class Avatar {
             body: ["m_body_1"],
             eyeL: ["m_eyeL_1"],
             eyeR: ["m_eyeR_1"],
-            bottom: ["m_pants_1"],
+            bottom: ["m_bottom_1"],
             hair: ["m_hair_2"],
             head: ["m_head_1"],
             shoes: ["m_shoes_1"],
