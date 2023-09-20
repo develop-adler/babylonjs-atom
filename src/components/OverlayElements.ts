@@ -6,6 +6,7 @@ import {
 } from "@babylonjs/core";
 import { SCENE_SETTINGS } from "../utils/global";
 import Core from "./Core";
+import AvatarEditor from "./OverlayElements/AvatarEditor";
 
 class OverlayElements {
     private _core: Core;
@@ -13,7 +14,7 @@ class OverlayElements {
     private _appElement: HTMLElement;
     private _overlayContainerElement!: HTMLDivElement;
     private _buttonContainerElement!: HTMLDivElement;
-    private _controlSwitchElement!: HTMLDivElement;
+    // private _controlSwitchElement!: HTMLDivElement;
 
     constructor(core: Core) {
         this._core = core;
@@ -21,9 +22,10 @@ class OverlayElements {
 
         this._createOverlayContainer();
         this._createButtonContainer();
-        this._createControlSwitchElement();
+        // this._createControlSwitchElement();
         this._createToggleImageEditingButton();
         this._createModelEditingUI();
+        this._createToggleAvatarEditingButton();
     }
 
     private _createOverlayContainer(): void {
@@ -71,110 +73,110 @@ class OverlayElements {
         this._overlayContainerElement.appendChild(this._buttonContainerElement);
     }
 
-    private _createControlSwitchElement(): void {
-        this._controlSwitchElement = document.createElement("div");
-        this._controlSwitchElement.id = "controlSwitch";
-        const css = document.createElement("style");
-        css.innerHTML = `
-            #controlSwitch {
-                pointer-events: none;
-                position: absolute;
-                right: 2rem;
-                bottom: 2.5rem;
-                // background-color: rgba(102, 102, 102, 0.50);
-                // backdrop-filter: blur(0.3125rem);
-                // border-radius: 1.5rem;
-                border: none;
-                outline: none;
-                padding: 0;
-                scale: 1;
-                transition: all 0.4s ease-in-out;
+    // private _createControlSwitchElement(): void {
+    //     // this._controlSwitchElement = document.createElement("div");
+    //     // this._controlSwitchElement.id = "controlSwitch";
+    //     const css = document.createElement("style");
+    //     css.innerHTML = `
+    //         #controlSwitch {
+    //             pointer-events: none;
+    //             position: absolute;
+    //             right: 2rem;
+    //             bottom: 2.5rem;
+    //             // background-color: rgba(102, 102, 102, 0.50);
+    //             // backdrop-filter: blur(0.3125rem);
+    //             // border-radius: 1.5rem;
+    //             border: none;
+    //             outline: none;
+    //             padding: 0;
+    //             scale: 1;
+    //             transition: all 0.4s ease-in-out;
 
-                @media screen and (max-width: 768px) {
-                    right: -3rem;
-                    bottom: -0.4rem;
-                    scale: 0.5;
-                }
-            }
+    //             @media screen and (max-width: 768px) {
+    //                 right: -3rem;
+    //                 bottom: -0.4rem;
+    //                 scale: 0.5;
+    //             }
+    //         }
 
-            input[type=checkbox]{
-                height: 0;
-                width: 0;
-                visibility: hidden;
-            }
+    //         input[type=checkbox]{
+    //             height: 0;
+    //             width: 0;
+    //             visibility: hidden;
+    //         }
         
-            #toggle {
-                pointer-events: all;
-                cursor: pointer;
-                text-indent: -9999px;
-                width: 200px;
-                height: 100px;
-                background: #FC4F91;
-                display: block;
-                border-radius: 100px;
-                position: relative;
-                // transition: background-color 0.2s ease-in-out;
-                scale: 0.7;
-            }
+    //         #toggle {
+    //             pointer-events: all;
+    //             cursor: pointer;
+    //             text-indent: -9999px;
+    //             width: 200px;
+    //             height: 100px;
+    //             background: #FC4F91;
+    //             display: block;
+    //             border-radius: 100px;
+    //             position: relative;
+    //             // transition: background-color 0.2s ease-in-out;
+    //             scale: 0.7;
+    //         }
         
-            #toggle:after {
-                content: '';
-                position: absolute;
-                top: 5px;
-                left: 5px;
-                width: 90px;
-                height: 90px;
-                background: #fff;
-                border-radius: 90px;
-                transition: 0.3s;
-            }
+    //         #toggle:after {
+    //             content: '';
+    //             position: absolute;
+    //             top: 5px;
+    //             left: 5px;
+    //             width: 90px;
+    //             height: 90px;
+    //             background: #fff;
+    //             border-radius: 90px;
+    //             transition: 0.3s;
+    //         }
         
-            // input:checked + #toggle {
-            //     background: #bada55;
-            // }
+    //         // input:checked + #toggle {
+    //         //     background: #bada55;
+    //         // }
         
-            input:checked + #toggle:after {
-                left: calc(100% - 5px);
-                transform: translateX(-100%);
-            }
+    //         input:checked + #toggle:after {
+    //             left: calc(100% - 5px);
+    //             transform: translateX(-100%);
+    //         }
         
-            #toggle:active:after {
-                width: 130px;
-            }
-        `;
-        document.getElementsByTagName("head")[0].appendChild(css);
+    //         #toggle:active:after {
+    //             width: 130px;
+    //         }
+    //     `;
+    //     document.getElementsByTagName("head")[0].appendChild(css);
 
-        const toggleInput = document.createElement("input");
-        toggleInput.type = "checkbox";
-        toggleInput.id = "toggleInput";
+    //     const toggleInput = document.createElement("input");
+    //     toggleInput.type = "checkbox";
+    //     toggleInput.id = "toggleInput";
 
-        const toggleLabel = document.createElement("label");
-        toggleLabel.id = "toggle";
-        toggleLabel.htmlFor = "toggleInput";
+    //     const toggleLabel = document.createElement("label");
+    //     toggleLabel.id = "toggle";
+    //     toggleLabel.htmlFor = "toggleInput";
 
-        this._controlSwitchElement.appendChild(toggleInput);
-        this._controlSwitchElement.appendChild(toggleLabel);
+    //     // this._controlSwitchElement.appendChild(toggleInput);
+    //     // this._controlSwitchElement.appendChild(toggleLabel);
 
-        toggleLabel.onclick = (e: MouseEvent) => {
-            if (
-                SCENE_SETTINGS.isEditingModelMode ||
-                SCENE_SETTINGS.isEditingPictureMode
-            ) {
-                e.preventDefault();
-                window.alert("Please turn off editing mode first!");
-                return;
-            }
-            e.stopPropagation();
+    //     toggleLabel.onclick = (e: MouseEvent) => {
+    //         if (
+    //             SCENE_SETTINGS.isEditingModelMode ||
+    //             SCENE_SETTINGS.isEditingPictureMode
+    //         ) {
+    //             e.preventDefault();
+    //             window.alert("Please turn off editing mode first!");
+    //             return;
+    //         }
+    //         e.stopPropagation();
 
-            if (SCENE_SETTINGS.isThirdperson) {
-                this._core.setFirstperson();
-            } else {
-                this._core.setThirdperson();
-            }
-        };
+    //         if (SCENE_SETTINGS.isThirdperson) {
+    //             this._core.setFirstperson();
+    //         } else {
+    //             this._core.setThirdperson();
+    //         }
+    //     };
 
-        this._overlayContainerElement.appendChild(this._controlSwitchElement);
-    }
+    //     this._overlayContainerElement.appendChild(// this._controlSwitchElement);
+    // }
 
     private _createModelEditingUI(): void {
         this._createToggleModelEditingButton();
@@ -420,7 +422,7 @@ class OverlayElements {
                 )!;
                 modelUploadInputButton.style.display = "block";
 
-                this._controlSwitchElement.style.display = "none";
+                // this._controlSwitchElement.style.display = "none";
             } else {
                 SCENE_SETTINGS.editingImage = null;
                 this._core.gizmoManager.attachToMesh(null);
@@ -437,7 +439,7 @@ class OverlayElements {
                 )!;
                 modelUploadInputButton.style.display = "none";
 
-                this._controlSwitchElement.style.display = "block";
+                // this._controlSwitchElement.style.display = "block";
             }
             this._setupModelEditing();
         };
@@ -545,13 +547,13 @@ class OverlayElements {
                 toggleImageEditingButton.style.backgroundColor = "#fc4f91";
                 uploadImageGuideText.style.display = "block";
 
-                this._controlSwitchElement.style.display = "none";
+                // this._controlSwitchElement.style.display = "none";
             } else {
                 SCENE_SETTINGS.editingImage = null;
                 toggleImageEditingButton.style.backgroundColor = "#8a8a8a";
                 uploadImageGuideText.style.display = "none";
 
-                this._controlSwitchElement.style.display = "block";
+                // this._controlSwitchElement.style.display = "block";
             }
 
             this._setupImageUpload();
@@ -742,6 +744,64 @@ class OverlayElements {
             this._core.avatarController.start();
             this._core.joystick.show();
         }
+    }
+
+    private _createToggleAvatarEditingButton(): void {
+        const toggleAvatarEditingButton = document.createElement("button");
+        toggleAvatarEditingButton.id = "toggleAvatarEditingButton";
+        toggleAvatarEditingButton.innerHTML = "Toggle Avatar Editing";
+
+        const css = document.createElement("style");
+        css.innerHTML = `
+            #toggleAvatarEditingButton {
+                margin-right: 0.6rem;
+                pointer-events: all;
+                cursor: pointer;
+                font-size: 1.5rem;
+                color: #ffffff;
+                background-color: #8a8a8a;
+                padding: 0.4rem 0.8rem;
+                border: none;
+                border-radius: 0.5rem;
+
+                @media screen and (max-width: 768px) {
+                    font-size: 0.7rem;
+                    left: 7rem;
+                }
+            }
+        `;
+        document.getElementsByTagName("head")[0].appendChild(css);
+
+        const avatarEditor = new AvatarEditor(this._overlayContainerElement, this._core);
+
+        toggleAvatarEditingButton.onclick = (e: MouseEvent) => {
+            e.stopPropagation();
+
+            if (SCENE_SETTINGS.isEditingModelMode) {
+                window.alert("Please turn off model editing mode first!");
+                return;
+            }
+            if (SCENE_SETTINGS.isEditingPictureMode) {
+                window.alert("Please turn off picture editing mode first!");
+                return;
+            }
+
+            SCENE_SETTINGS.isEditingAvatarMode =
+                !SCENE_SETTINGS.isEditingAvatarMode;
+
+            if (SCENE_SETTINGS.isEditingAvatarMode) {
+                toggleAvatarEditingButton.style.backgroundColor = "#fc4f91";
+                // this._controlSwitchElement.style.display = "none";
+                avatarEditor.editorOverlay.style.display = "flex";
+                this._core.joystick.hide();
+            } else {
+                toggleAvatarEditingButton.style.backgroundColor = "#8a8a8a";
+                // this._controlSwitchElement.style.display = "block";
+                avatarEditor.editorOverlay.style.display = "none";
+                this._core.joystick.show();
+            }
+        };
+        this._buttonContainerElement.appendChild(toggleAvatarEditingButton);
     }
 }
 

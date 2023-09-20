@@ -1,7 +1,12 @@
 export { };
 
 declare global {
-    type PictureSide = "front" | "leftFront" | "rightFront" | "leftBack" | "rightBack";
+    type PictureSide =
+        | "front"
+        | "leftFront"
+        | "rightFront"
+        | "leftBack"
+        | "rightBack";
 
     interface PictureInterface {
         front: Picture | null;
@@ -10,6 +15,8 @@ declare global {
         leftBack: Picture | null;
         rightBack: Picture | null;
     }
+
+    type Gender = "male" | "female";
 
     interface GenderParts {
         eyeL: Array<string>;
@@ -20,5 +27,5 @@ declare global {
         head: Array<string>;
         shoes: Array<string>;
         top: Array<string>;
-    };
+    }
 }

@@ -14,37 +14,14 @@ import {
     Vector3,
 } from "@babylonjs/core";
 import Atom from "../Atoms/Atom";
-
-// all male parts' file name
-const MALE_PARTS: GenderParts = {
-    body: ["m_body_1"],
-    eyeL: ["m_eyeL_1"],
-    eyeR: ["m_eyeR_1"],
-    bottom: ["m_pants_1", "m_pants_2"],
-    hair: ["m_hair_1", "m_hair_2", "m_hair_3"],
-    head: ["m_head_1", "m_head_2"],
-    shoes: ["m_shoes_1", "m_shoes_2"],
-    top: ["m_top_1", "m_top_2"],
-};
-
-// all male parts' file name
-const FEMALE_PARTS: GenderParts = {
-    body: ["f_body_1"],
-    eyeL: ["f_eyeL_1"],
-    eyeR: ["f_eyeR_1"],
-    bottom: ["f_bottom_1"],
-    hair: ["f_hair_1", "f_hair_2", "f_hair_3"],
-    head: ["f_head_1", "f_head_2"],
-    shoes: ["f_shoes_1", "f_shoes_2"],
-    top: ["f_top_1"],
-};
+import { MALE_PARTS, FEMALE_PARTS } from "../../utils/global";
 
 class Avatar {
     private _scene: Scene;
     private _atom: Atom;
-    private _gender: "male" | "female" = "female";
-    private _root!: Mesh;
-    private _meshes!: AbstractMesh[];
+    private _gender: Gender;
+    private _root: Mesh;
+    private _meshes: AbstractMesh[];
     private _skeleton!: Skeleton;
     private _animations: Record<string, AnimationGroup> = {};
     private _capsuleMesh!: Mesh;
@@ -60,9 +37,17 @@ class Avatar {
         this._atom = atom;
         this._shadowGenerators = shadowGenerators ?? [];
         this._root = new Mesh("root", this._scene);
+        this._root.scaling.scaleInPlace(0.01);
+        this._meshes = [];
+
+        const storedGender = localStorage.getItem("avatarGender");
+        this._gender =
+            storedGender === "male" || storedGender === "female"
+                ? (storedGender as Gender)
+                : "female";
 
         this._parts = JSON.parse(localStorage.getItem("avatarParts") ?? "{}");
-        this.generateCollision();
+        this._generateCollision();
     }
 
     public get scene(): Scene {
@@ -77,7 +62,7 @@ class Avatar {
     public get animations(): Record<string, AnimationGroup> {
         return this._animations;
     }
-    public get gender(): "male" | "female" {
+    public get gender(): Gender {
         return this._gender;
     }
     public get parts(): GenderParts {
@@ -88,6 +73,9 @@ class Avatar {
     }
     public get physicsBody(): PhysicsBody {
         return this._physicsAggregate.body;
+    }
+    public set gender(genderType: "male" | "female") {
+        this._gender = genderType;
     }
 
     public async init(): Promise<void> {
@@ -100,18 +88,18 @@ class Avatar {
             );
         this._skeleton = skeletons[0];
 
-        this._root.scaling.scaleInPlace(0.01);
         this._root.position.copyFrom(meshes[0].position);
         this._root.rotationQuaternion = meshes[0].rotationQuaternion;
-
-        this._meshes = meshes;
 
         // add animation groups
         animationGroups.forEach(animation => {
             this._animations[animation.name] = animation;
         });
 
-        this._meshes.forEach(mesh => {
+        meshes.forEach(mesh => {
+            // push to meshes list
+            this._meshes.push(mesh);
+
             // assign root as parent
             mesh.parent = this._root;
 
@@ -138,75 +126,68 @@ class Avatar {
         localStorage.setItem("avatarGender", this._gender);
 
         // dispose default model
-        this._meshes.forEach(mesh => {
-            this._scene.removeMesh(mesh);
-            mesh.dispose();
-        });
+        this._clearMeshes();
 
-        let parts;
-        if (this._gender === "male") {
-            parts = Object.keys(this._parts).length
-                ? JSON.parse(localStorage.getItem("avatarParts")!)
-                : {
-                    body: ["m_body_1"],
-                    eyeL: ["m_eyeL_1"],
-                    eyeR: ["m_eyeR_1"],
-                    bottom: ["m_pants_1"],
-                    hair: ["m_hair_2"],
-                    head: ["m_head_1"],
-                    shoes: ["m_shoes_1"],
-                    top: ["m_top_2"],
-                };
-        } else {
-            parts = Object.keys(this._parts).length
-                ? JSON.parse(localStorage.getItem("avatarParts")!)
-                : {
-                    body: ["f_body_1"],
-                    eyeL: ["f_eyeL_1"],
-                    eyeR: ["f_eyeR_1"],
-                    bottom: ["f_bottom_1"],
-                    hair: ["f_hair_2"],
-                    head: ["f_head_1"],
-                    shoes: ["f_shoes_1"],
-                    top: ["f_top_1"],
-                };
-        }
-
-        console.log(parts);
+        this._parts = this._getAvatarParts();
 
         // load parts
-        Object.values<[string]>(parts).forEach(partList => {
-            this.loadPart(partList[0]);
+        Object.entries(this._parts).forEach(genderPart => {
+            // load first item in list of gender parts
+            this._loadPart(genderPart[1][0]);
         });
-
-        // localStorage.setItem("avatarParts", JSON.stringify(this._parts));
     }
 
-    public async loadPart(partName: string): Promise<void> {
+    public changeGender(gender: Gender): void {
+        this._gender = gender;
+        localStorage.setItem("avatarGender", this._gender);
+
+        this._clearMeshes();
+        this.init();
+    }
+    
+    public changePartStyle(partName: string, partStyle: string): void {
+        const styleName = (this._gender === "male" ? "m_" : "f_") + partName + "_" + partStyle;
+
+        this._parts[partName as keyof GenderParts] = [styleName];
+        localStorage.setItem("avatarParts", JSON.stringify(this._parts));
+
+        // load new part style mesh
+        this._loadPart(styleName);
+
+        // remove current part name mesh
+        this._meshes.forEach(mesh => {
+            if (mesh.name.includes(partName)) {
+                this._scene.removeMesh(mesh);
+                mesh.dispose(false, true);
+            }
+        });
+    }
+
+    private async _loadPart(partStyleName: string): Promise<void> {
         // check if part exists
         if (
-            gender === "male" &&
-            !Object.values(MALE_PARTS).flat().includes(partName)
+            this._gender === "male" &&
+            !Object.values(MALE_PARTS).flat().includes(partStyleName)
         ) {
-            console.error(`Part ${partName} does not exist`);
+            console.error(`Part ${partStyleName} does not exist`);
             return;
         }
         if (
-            gender === "female" &&
-            !Object.values(FEMALE_PARTS).flat().includes(partName)
+            this._gender === "female" &&
+            !Object.values(FEMALE_PARTS).flat().includes(partStyleName)
         ) {
-            console.error(`Part ${partName} does not exist`);
+            console.error(`Part ${partStyleName} does not exist`);
             return;
         }
-        // if (partName.includes("body")) {
+        // if (partStyleName.includes("body")) {
         //     console.error(`Cannot change body`);
         //     return;
         // }
-        // if (partName.includes("eyeL")) {
+        // if (partStyleName.includes("eyeL")) {
         //     console.error(`Cannot change eyeL`);
         //     return;
         // }
-        // if (partName.includes("eyeR")) {
+        // if (partStyleName.includes("eyeR")) {
         //     console.error(`Cannot change eyeR`);
         //     return;
         // }
@@ -214,7 +195,7 @@ class Avatar {
         SceneLoader.ImportMesh(
             "",
             `/models/avatar/${this._gender}/`,
-            `${partName}.glb`,
+            `${partStyleName}.glb`,
             this._scene,
             (meshes, particleSystems, skeletons, animationGroups) => {
                 // dispose unused resources
@@ -232,6 +213,9 @@ class Avatar {
                 });
 
                 meshes.forEach((mesh, index) => {
+                    // push to meshes list
+                    this._meshes.push(mesh);
+
                     // assign root as parent
                     mesh.parent = this._root;
 
@@ -243,12 +227,66 @@ class Avatar {
 
                     // add meshes to reflection list
                     this._atom.addMeshToReflectionList(mesh as Mesh);
+
+                    // add shadows
+                    if (this._shadowGenerators.length) {
+                        this._shadowGenerators?.forEach(generator => {
+                            mesh.receiveShadows = true;
+                            generator.addShadowCaster(mesh);
+                        });
+                    }
                 });
             },
         );
     }
 
-    private generateCollision(): void {
+    private _getAvatarParts(): GenderParts {
+        const defaultMaleParts: GenderParts = {
+            body: ["m_body_1"],
+            eyeL: ["m_eyeL_1"],
+            eyeR: ["m_eyeR_1"],
+            bottom: ["m_pants_1"],
+            hair: ["m_hair_2"],
+            head: ["m_head_1"],
+            shoes: ["m_shoes_1"],
+            top: ["m_top_2"],
+        };
+
+        const defaultFemaleParts: GenderParts = {
+            body: ["f_body_1"],
+            eyeL: ["f_eyeL_1"],
+            eyeR: ["f_eyeR_1"],
+            bottom: ["f_bottom_1"],
+            hair: ["f_hair_2"],
+            head: ["f_head_1"],
+            shoes: ["f_shoes_1"],
+            top: ["f_top_1"],
+        };
+
+        let parts: GenderParts;
+
+        // get user settings from local storage
+        const storedParts = localStorage.getItem("avatarParts");
+
+        // if user has no settings, use default parts
+        if (this._gender === "male") {
+            parts = storedParts !== null ? JSON.parse(storedParts) : defaultMaleParts;
+        } else {
+            parts = storedParts !== null ? JSON.parse(storedParts) : defaultFemaleParts;
+        }
+
+        // if user changes gender, reset parts to default parts
+        if ((this._gender === "male" && JSON.stringify(Object.entries(parts)).includes('["f_')) ||
+            (this._gender === "female" && JSON.stringify(Object.entries(parts)).includes('["m_'))) {
+            parts = this._gender === "male" ? defaultMaleParts : defaultFemaleParts;
+        }
+
+        localStorage.setItem("avatarParts", JSON.stringify(parts));
+
+        return parts;
+    }
+
+    private _generateCollision(): void {
         // create capsule physics body for character
         this._capsuleMesh = MeshBuilder.CreateCapsule(
             "capsuleMesh",
@@ -282,6 +320,13 @@ class Avatar {
         this._physicsAggregate.body.setLinearDamping(50);
     }
 
+    private _clearMeshes(): void {
+        this._meshes.forEach(mesh => {
+            this._scene.removeMesh(mesh);
+            mesh.dispose(false, true);
+        });
+    }
+
     public setPosition(position: Vector3): void {
         this.physicsAggregate.body.disablePreStep = false;
         this._capsuleMesh.position = position;
@@ -292,7 +337,6 @@ class Avatar {
 
     public show(): void {
         this._meshes.forEach(mesh => {
-            if (mesh.name.includes("_2")) return;
             mesh.isVisible = true;
         });
     }

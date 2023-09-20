@@ -62,7 +62,7 @@ class AvatarController {
     private frontVector: Vector3 = Vector3.Zero();
     private sideVector: Vector3 = Vector3.Zero();
 
-    private static readonly AVATAR_HEAD_HEIGHT: number = 1.65;
+    private static readonly AVATAR_HEAD_HEIGHT: number = 1.6;
     private static readonly CROUCH_SPEED: number = 0.015;
     private static readonly WALK_SPEED: number = 0.03;
     private static readonly RUN_SPEED: number = 0.06;
@@ -239,7 +239,9 @@ class AvatarController {
         this._camera.setTarget(
             new Vector3(
                 translation.x,
-                translation.y + AvatarController.AVATAR_HEAD_HEIGHT,
+                translation.y +
+                AvatarController.AVATAR_HEAD_HEIGHT -
+                (this._avatar.gender === "male" ? 0 : 0.2),
                 translation.z,
             ),
         );
@@ -435,8 +437,10 @@ class AvatarController {
     private _toggleRun(): void {
         this._isRunning = !this._isRunning;
         this.moveSpeed = this._isRunning
-            ? AvatarController.RUN_SPEED * (this._avatar.gender === "female" ? 0.7 : 1)
-            : AvatarController.WALK_SPEED * (this._avatar.gender === "female" ? 0.7 : 1);
+            ? AvatarController.RUN_SPEED *
+            (this._avatar.gender === "female" ? 0.7 : 1)
+            : AvatarController.WALK_SPEED *
+            (this._avatar.gender === "female" ? 0.7 : 1);
     }
 
     private _calculateDirectionOffset(): number {
