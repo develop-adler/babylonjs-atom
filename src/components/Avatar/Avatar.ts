@@ -184,11 +184,17 @@ class Avatar {
 
     public async loadPart(partName: string): Promise<void> {
         // check if part exists
-        if (this._gender === "male" && Object.values(MALE_PARTS).flat().includes(partName)) {
+        if (
+            gender === "male" &&
+            !Object.values(MALE_PARTS).flat().includes(partName)
+        ) {
             console.error(`Part ${partName} does not exist`);
             return;
         }
-        if (this._gender === "female" && !Object.values(FEMALE_PARTS).flat().includes(partName)) {
+        if (
+            gender === "female" &&
+            !Object.values(FEMALE_PARTS).flat().includes(partName)
+        ) {
             console.error(`Part ${partName} does not exist`);
             return;
         }
