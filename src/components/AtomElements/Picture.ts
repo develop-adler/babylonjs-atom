@@ -338,8 +338,8 @@ class Picture {
         this._scene.removeMaterial(this._pictureFrameMaterial);
         this._scene.removeMaterial(this._pictureMaterial);
 
-        this._pictureFrameMesh.dispose();
-        this._pictureMesh.dispose();
+        this._pictureFrameMesh.dispose(false, true);
+        this._pictureMesh.dispose(false, true);
         this._texture.dispose();
         this._pictureFrameMaterial.dispose();
         this._pictureMaterial.dispose();
