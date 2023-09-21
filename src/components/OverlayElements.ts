@@ -572,12 +572,6 @@ class OverlayElements {
             <p>Then upload your image to replace image.</p>
         `;
 
-        const editingImageSide = document.createElement("p");
-        editingImageSide.id = "editingImageSide";
-        editingImageSide.innerHTML = `Editing image: ${SCENE_SETTINGS.editingImage ?? "None"
-            }`;
-        uploadImageGuideText.appendChild(editingImageSide);
-
         SCENE_SETTINGS.imageUploadInputField = document.createElement("input");
         SCENE_SETTINGS.imageUploadInputField.id = "imageUploadInputField";
         SCENE_SETTINGS.imageUploadInputField.type = "file";

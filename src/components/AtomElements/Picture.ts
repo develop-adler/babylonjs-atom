@@ -305,14 +305,6 @@ class Picture {
     }
 
     private _handleClickObject = (pointerInfo: PointerInfo): void => {
-        const pictureSideMap = {
-            front: "Front",
-            leftFront: "Left Front",
-            rightFront: "Right Front",
-            leftBack: "Left Back",
-            rightBack: "Right Back",
-        };
-
         if (pointerInfo.type === PointerEventTypes.POINTERPICK) {
             if (!SCENE_SETTINGS.isEditingPictureMode) return;
             if (!pointerInfo?.pickInfo?.hit) return;
@@ -320,10 +312,6 @@ class Picture {
             if (pointerInfo?.pickInfo.pickedMesh?.name === this._pictureMesh.name) {
                 SCENE_SETTINGS.editingImage = this._side;
                 SCENE_SETTINGS.imageUploadInputField.click();
-
-                const editingImageSide = document.getElementById("editingImageSide")!;
-                editingImageSide.innerHTML = `Editing image: ${pictureSideMap[SCENE_SETTINGS.editingImage] ?? "None"
-                    }`;
                 return;
             }
         }
