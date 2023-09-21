@@ -357,7 +357,9 @@ class AvatarController {
             this.moveDirection.y = vel.y;
             this._meshBody.setLinearVelocity(this.moveDirection);
         } else {
-            this._meshBody.setLinearVelocity(this._meshBody.getLinearVelocity());
+            // prevent sliding around
+            const vel = this._meshBody.getLinearVelocity();
+            this._meshBody.setLinearVelocity(new Vector3(0, vel.y, 0));
             this._isMoving = false;
         }
     }

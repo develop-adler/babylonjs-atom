@@ -302,7 +302,7 @@ class Avatar {
         const physicsAggregate = new PhysicsAggregate(
             this._capsuleMesh,
             PhysicsShapeType.CAPSULE,
-            { mass: 20, restitution: 0.01 },
+            { mass: 50, restitution: 0.01 },
             this._scene,
         );
 
@@ -313,9 +313,6 @@ class Avatar {
         this._physicsAggregate.body.setMassProperties({
             inertia: Vector3.Zero(),
         });
-
-        // prevent sliding around
-        this._physicsAggregate.body.setLinearDamping(50);
     }
 
     private _clearMeshes(): void {
