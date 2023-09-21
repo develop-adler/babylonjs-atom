@@ -330,9 +330,6 @@ class AvatarController {
                 this.moveDirection,
             );
 
-            // ground the mesh to prevent it from flying
-            this.moveDirection.y = 0;
-
             // calculate towards camera direction
             const angleYCameraDirection = Math.atan2(
                 this._camera.position.x - this._avatarRoot.position.x,
