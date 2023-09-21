@@ -154,9 +154,6 @@ class Avatar {
         const styleName =
             (this._gender === "male" ? "m_" : "f_") + partName + "_" + partStyle;
 
-        this._parts[partName as keyof GenderParts] = [styleName];
-        localStorage.setItem("avatarParts", JSON.stringify(this._parts));
-
         // load new part style mesh
         this._loadPart(styleName, partName);
     }
@@ -223,6 +220,11 @@ class Avatar {
                     });
                 }
 
+                // update localstorage
+                this._parts[loadingStyleName as keyof GenderParts] = [partStyleName];
+                localStorage.setItem("avatarParts", JSON.stringify(this._parts));
+
+                // add new part
                 meshes.forEach((mesh, index) => {
                     // push to meshes list
                     this._meshes.push(mesh);
