@@ -14,7 +14,12 @@ import {
     Vector3,
 } from "@babylonjs/core";
 import Atom from "../Atoms/Atom";
-import { MALE_PARTS, FEMALE_PARTS } from "../../utils/global";
+import {
+    MALE_PARTS,
+    FEMALE_PARTS,
+    DEFAULT_MALE_PARTS,
+    DEFAULT_FEMALE_PARTS,
+} from "../../utils/global";
 
 class Avatar {
     private _scene: Scene;
@@ -247,28 +252,6 @@ class Avatar {
     }
 
     private _getAvatarParts(): GenderParts {
-        const defaultMaleParts: GenderParts = {
-            body: ["m_body_1"],
-            eyeL: ["m_eyeL_1"],
-            eyeR: ["m_eyeR_1"],
-            bottom: ["m_bottom_1"],
-            hair: ["m_hair_2"],
-            head: ["m_head_1"],
-            shoes: ["m_shoes_1"],
-            top: ["m_top_2"],
-        };
-
-        const defaultFemaleParts: GenderParts = {
-            body: ["f_body_1"],
-            eyeL: ["f_eyeL_1"],
-            eyeR: ["f_eyeR_1"],
-            bottom: ["f_bottom_1"],
-            hair: ["f_hair_2"],
-            head: ["f_head_1"],
-            shoes: ["f_shoes_1"],
-            top: ["f_top_1"],
-        };
-
         let parts: GenderParts;
 
         // get user settings from local storage
@@ -276,10 +259,11 @@ class Avatar {
 
         // if user has no settings, use default parts
         if (this._gender === "male") {
-            parts = storedParts !== null ? JSON.parse(storedParts) : defaultMaleParts;
+            parts =
+                storedParts !== null ? JSON.parse(storedParts) : DEFAULT_MALE_PARTS;
         } else {
             parts =
-                storedParts !== null ? JSON.parse(storedParts) : defaultFemaleParts;
+                storedParts !== null ? JSON.parse(storedParts) : DEFAULT_FEMALE_PARTS;
         }
 
         // if user changes gender, reset parts to default parts
@@ -289,7 +273,8 @@ class Avatar {
             (this._gender === "female" &&
                 JSON.stringify(Object.entries(parts)).includes('["m_'))
         ) {
-            parts = this._gender === "male" ? defaultMaleParts : defaultFemaleParts;
+            parts =
+                this._gender === "male" ? DEFAULT_MALE_PARTS : DEFAULT_FEMALE_PARTS;
         }
 
         localStorage.setItem("avatarParts", JSON.stringify(parts));

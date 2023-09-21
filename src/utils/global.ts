@@ -49,3 +49,26 @@ export const FEMALE_PARTS: GenderParts = {
     shoes: ["f_shoes_1", "f_shoes_2"],
     top: ["f_top_1"],
 };
+
+
+export const DEFAULT_MALE_PARTS: GenderParts = {
+    body: ["m_body_1"],
+    eyeL: ["m_eyeL_1"],
+    eyeR: ["m_eyeR_1"],
+    bottom: ["m_bottom_1"],
+    hair: ["m_hair_2"],
+    head: ["m_head_1"],
+    shoes: ["m_shoes_1"],
+    top: ["m_top_2"],
+};
+
+export const DEFAULT_FEMALE_PARTS: GenderParts = {
+    body: ["f_body_1"],
+    eyeL: ["f_eyeL_1"],
+    eyeR: ["f_eyeR_1"],
+    bottom: ["f_bottom_1"],
+    hair: ["f_hair_2"],
+    head: ["f_head_1"],
+    shoes: ["f_shoes_1"],
+    top: ["f_top_1"],
+};
