@@ -120,7 +120,7 @@ class Core {
             new BABYLON.Vector3(0, Core.AVATAR_CAMERA_HEIGHT, -2), // target
             this._scene,
         );
-        this._initCamera();
+        this._initAvatarCamera();
 
         // wait until scene has physics then setup scene
         this.initScene().then(async () => {
@@ -351,7 +351,7 @@ class Core {
         this._gizmoManager.attachableMeshes = []; // don't allow any mesh to be attached
     }
 
-    private _initCamera(): void {
+    private _initAvatarCamera(): void {
         this._camera = new BABYLON.ArcRotateCamera(
             "camera",
             -Math.PI * 0.5,
