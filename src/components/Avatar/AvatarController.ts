@@ -103,6 +103,8 @@ class AvatarController {
 
         this.oldMove = { x: 0, y: 0, z: 0 };
 
+        this._init();
+
         if (this._avatarRoot === undefined) {
             console.error("Mesh is undefined");
         }
@@ -121,7 +123,7 @@ class AvatarController {
         }
     }
 
-    public start(): void {
+    private _init(): void {
         // Keyboard input
         this._scene.actionManager = new ActionManager(this._scene);
 
@@ -171,15 +173,16 @@ class AvatarController {
                 }
             }),
         );
+    }
 
+    public start(): void {
         this._isActive = true;
-
         this._scene.onBeforeRenderObservable.add(this._updateController);
     }
 
     public stop(): void {
         this._isActive = false;
-        this._scene.actionManager.dispose();
+        this._scene.onBeforeRenderObservable.removeCallback(this._updateController);
     }
 
     private _updateController = () => {
