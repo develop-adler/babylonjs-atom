@@ -13,6 +13,7 @@ import {
 } from "@babylonjs/core";
 import Atom from "../Atoms/Atom";
 import { SCENE_SETTINGS } from "../../utils/global";
+import { isMobile } from "../../utils/functions";
 
 class Picture {
     private _scene: Scene;
@@ -266,6 +267,9 @@ class Picture {
             const actionManager = new ActionManager(this._scene);
             actionManager.registerAction(
                 new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, () => {
+                    // don't show hover effect on mobile
+                    if (isMobile()) return;
+
                     // change cursor to pointer on hover
                     if (!SCENE_SETTINGS.isEditingPictureMode) {
                         this._scene.hoverCursor = "default";
@@ -284,6 +288,9 @@ class Picture {
             );
             actionManager.registerAction(
                 new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, () => {
+                    // don't show hover effect on mobile
+                    if (isMobile()) return;
+
                     // change cursor to default on hover out
                     if (!SCENE_SETTINGS.isEditingPictureMode) return;
                     this._scene.hoverCursor = "default";
