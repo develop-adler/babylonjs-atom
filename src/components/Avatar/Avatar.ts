@@ -144,26 +144,22 @@ class Avatar {
         this._clearMeshes();
         this.init();
     }
-    
+
     public changePartStyle(partName: string, partStyle: string): void {
-        const styleName = (this._gender === "male" ? "m_" : "f_") + partName + "_" + partStyle;
+        const styleName =
+            (this._gender === "male" ? "m_" : "f_") + partName + "_" + partStyle;
 
         this._parts[partName as keyof GenderParts] = [styleName];
         localStorage.setItem("avatarParts", JSON.stringify(this._parts));
 
         // load new part style mesh
-        this._loadPart(styleName);
-
-        // remove current part name mesh
-        this._meshes.forEach(mesh => {
-            if (mesh.name.includes(partName)) {
-                this._scene.removeMesh(mesh);
-                mesh.dispose(false, true);
-            }
-        });
+        this._loadPart(styleName, partName);
     }
 
-    private async _loadPart(partStyleName: string): Promise<void> {
+    private async _loadPart(
+        partStyleName: string,
+        loadingStyleName?: string,
+    ): Promise<void> {
         // check if part exists
         if (
             this._gender === "male" &&
@@ -211,6 +207,16 @@ class Avatar {
                     this._scene.removeAnimationGroup(animation);
                     animation.dispose();
                 });
+
+                // remove previous part
+                if (loadingStyleName) {
+                    this._meshes.forEach(mesh => {
+                        if (mesh.name.includes(loadingStyleName)) {
+                            this._scene.removeMesh(mesh);
+                            mesh.dispose(false, true);
+                        }
+                    });
+                }
 
                 meshes.forEach((mesh, index) => {
                     // push to meshes list
@@ -272,12 +278,17 @@ class Avatar {
         if (this._gender === "male") {
             parts = storedParts !== null ? JSON.parse(storedParts) : defaultMaleParts;
         } else {
-            parts = storedParts !== null ? JSON.parse(storedParts) : defaultFemaleParts;
+            parts =
+                storedParts !== null ? JSON.parse(storedParts) : defaultFemaleParts;
         }
 
         // if user changes gender, reset parts to default parts
-        if ((this._gender === "male" && JSON.stringify(Object.entries(parts)).includes('["f_')) ||
-            (this._gender === "female" && JSON.stringify(Object.entries(parts)).includes('["m_'))) {
+        if (
+            (this._gender === "male" &&
+                JSON.stringify(Object.entries(parts)).includes('["f_')) ||
+            (this._gender === "female" &&
+                JSON.stringify(Object.entries(parts)).includes('["m_'))
+        ) {
             parts = this._gender === "male" ? defaultMaleParts : defaultFemaleParts;
         }
 
