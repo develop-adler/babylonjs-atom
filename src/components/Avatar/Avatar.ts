@@ -218,10 +218,10 @@ class Avatar {
                             mesh.dispose(false, true);
                         }
                     });
-                }
 
-                // update localstorage
-                this._parts[loadingStyleName as keyof GenderParts] = [partStyleName];
+                    // update localstorage
+                    this._parts[loadingStyleName as keyof GenderParts] = [partStyleName];
+                }
                 localStorage.setItem("avatarParts", JSON.stringify(this._parts));
 
                 // add new part
